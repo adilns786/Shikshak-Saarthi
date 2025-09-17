@@ -2,13 +2,44 @@
 
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { LucideIcon } from "lucide-react"
+import { 
+  FileText, 
+  BookOpen, 
+  Calendar, 
+  TrendingUp, 
+  Users, 
+  Clock, 
+  CheckCircle, 
+  AlertCircle,
+  BarChart3,
+  Target,
+  Award,
+  Activity
+} from "lucide-react"
+
+// Icon mapping for available icons
+const iconMap = {
+  FileText,
+  BookOpen,
+  Calendar,
+  TrendingUp,
+  Users,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  BarChart3,
+  Target,
+  Award,
+  Activity,
+} as const
+
+type IconName = keyof typeof iconMap
 
 interface StatsCardProps {
   title: string
   value: string | number
   description?: string
-  icon: LucideIcon
+  iconName: IconName
   trend?: {
     value: number
     isPositive: boolean
@@ -16,7 +47,9 @@ interface StatsCardProps {
   delay?: number
 }
 
-export function StatsCard({ title, value, description, icon: Icon, trend, delay = 0 }: StatsCardProps) {
+export function StatsCard({ title, value, description, iconName, trend, delay = 0 }: StatsCardProps) {
+  const Icon = iconMap[iconName]
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { DashboardLayout } from "@/components/ui/dashboard-layout"
 import { StatsCard } from "@/components/ui/stats-card"
-import { RecentActivity } from "@/components/ui/recent-activity"
+// import { RecentActivity } from "@/components/ui/recent-activity"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -16,13 +16,16 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) {
+    console.log("No user found, redirecting to login")
     redirect("/auth/login")
   }
 
   // Get user profile
   const { data: profile } = await supabase.from("users").select("*").eq("id", user.id).single()
-
+  console.log("User:", user)
+  console.log("User Profile:", profile)
   if (!profile) {
+    console.log("No profile found, redirecting to login")
     redirect("/auth/login")
   }
 
@@ -109,28 +112,28 @@ export default async function DashboardPage() {
             title="Total Appraisals"
             value={totalAppraisals}
             description="All time appraisals"
-            icon={FileText}
+            iconName="FileText"
             delay={0}
           />
           <StatsCard
             title="Publications"
             value={publications.length}
             description={`${currentYearPublications} this year`}
-            icon={BookOpen}
+            iconName="BookOpen"
             delay={0.1}
           />
           <StatsCard
             title="Events Attended"
             value={events.length}
             description="Conferences & workshops"
-            icon={Calendar}
+            iconName="Calendar"
             delay={0.2}
           />
           <StatsCard
             title="Approval Rate"
             value={totalAppraisals > 0 ? `${Math.round((approvedAppraisals / totalAppraisals) * 100)}%` : "0%"}
             description="Appraisal success rate"
-            icon={TrendingUp}
+            iconName="TrendingUp"
             delay={0.3}
           />
         </div>
@@ -221,7 +224,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Recent Activity */}
-        <RecentActivity activities={recentActivity} />
+        {/* <RecentActivity activities={recentActivity} /> */}
       </div>
     </DashboardLayout>
   )
