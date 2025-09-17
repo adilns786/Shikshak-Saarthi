@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent } from "@/components/ui/sheet"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -100,41 +100,19 @@ export function AdminLayout({ children, user }: AdminLayoutProps) {
         </SheetContent>
       </Sheet>
 
-      {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-card border-r border-border">
-          <div className="flex h-16 items-center px-6 border-b">
-            <Link href="/admin" className="flex items-center space-x-2">
-              <div className="h-8 w-8 bg-accent rounded-lg flex items-center justify-center">
-                <Shield className="h-4 w-4 text-white" />
-              </div>
-              <span className="font-display font-bold text-lg text-primary">Admin Panel</span>
-            </Link>
-          </div>
-          <nav className="flex-1 px-4 py-6 space-y-2">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              >
-                <item.icon className="mr-3 h-5 w-5" />
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      </div>
-
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top navigation */}
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background/80 backdrop-blur-sm px-4 sm:gap-x-6 sm:px-6 lg:px-8">
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="sm" className="lg:hidden">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
+          {/* Mobile menu button - Fixed: Simple button instead of SheetTrigger */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="lg:hidden"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1"></div>
@@ -199,6 +177,32 @@ export function AdminLayout({ children, user }: AdminLayoutProps) {
             {children}
           </motion.div>
         </main>
+      </div>
+
+      {/* Desktop sidebar - Moved outside main content div */}
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
+        <div className="flex flex-col flex-grow bg-card border-r border-border">
+          <div className="flex h-16 items-center px-6 border-b">
+            <Link href="/admin" className="flex items-center space-x-2">
+              <div className="h-8 w-8 bg-accent rounded-lg flex items-center justify-center">
+                <Shield className="h-4 w-4 text-white" />
+              </div>
+              <span className="font-display font-bold text-lg text-primary">Admin Panel</span>
+            </Link>
+          </div>
+          <nav className="flex-1 px-4 py-6 space-y-2">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <item.icon className="mr-3 h-5 w-5" />
+                {item.name}
+              </Link>
+            ))}
+          </nav>
+        </div>
       </div>
     </div>
   )

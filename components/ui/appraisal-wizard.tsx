@@ -595,7 +595,10 @@ export function AppraisalWizard({ initialData, isEditing = false }: AppraisalWiz
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            {steps[currentStep].icon({ className: "h-5 w-5" })}
+            {(() => {
+              const Icon = steps[currentStep].icon;
+              return <Icon className="h-5 w-5" />;
+            })()}
             <span>{steps[currentStep].title}</span>
           </CardTitle>
           <p className="text-muted-foreground">{steps[currentStep].description}</p>

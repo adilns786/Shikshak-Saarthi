@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -13,6 +14,7 @@ import { createBrowserClient } from "@/lib/supabase/client"
 import { toast } from "@/hooks/use-toast"
 
 interface AppraisalDetails {
+  profiles?: any
   id: string
   academic_year: string
   status: string
@@ -22,7 +24,8 @@ interface AppraisalDetails {
   research_data: any
   service_data: any
   llm_analysis?: any
-  profiles: {
+  user_id: string
+  users: {
     full_name: string
     department: string
     designation: string
@@ -49,12 +52,12 @@ export default function AppraisalDetailsPage() {
     try {
       setLoading(true)
 
-      // Fetch appraisal details
+      // Fetch appraisal details with user data using the correct foreign key
       const { data: appraisalData, error: appraisalError } = await supabase
         .from("appraisals")
         .select(`
           *,
-          profiles!appraisals_faculty_id_fkey (
+          users!appraisals_user_id_fkey (
             full_name,
             department,
             designation,
@@ -68,12 +71,12 @@ export default function AppraisalDetailsPage() {
 
       setAppraisal(appraisalData)
 
-      // Fetch publications for this faculty
+      // Fetch publications for this user
       const { data: publicationsData, error: publicationsError } = await supabase
         .from("publications")
         .select("*")
-        .eq("faculty_id", appraisalData.faculty_id)
-        .order("year", { ascending: false })
+        .eq("user_id", appraisalData.user_id) // Changed from faculty_id to user_id
+        .order("publication_year", { ascending: false })
 
       if (publicationsError) throw publicationsError
 
@@ -114,10 +117,10 @@ export default function AppraisalDetailsPage() {
 
   const pdfData = {
     faculty: {
-      name: appraisal.profiles.full_name,
-      department: appraisal.profiles.department,
-      designation: appraisal.profiles.designation,
-      employeeId: appraisal.profiles.employee_id,
+      name: appraisal.profiles?.full_name,
+      department: appraisal.profiles?.department,
+      designation: appraisal.profiles?.designation,
+      employeeId: appraisal.profiles?.employee_id,
     },
     appraisal: {
       academicYear: appraisal.academic_year,
@@ -175,19 +178,19 @@ export default function AppraisalDetailsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-500">Name</p>
-                <p className="text-lg font-semibold">{appraisal.profiles.full_name}</p>
+                <p className="text-lg font-semibold">{appraisal.profiles?.full_name}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Employee ID</p>
-                <p className="text-lg font-semibold">{appraisal.profiles.employee_id}</p>
+                <p className="text-lg font-semibold">{appraisal.profiles?.employee_id}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Department</p>
-                <p className="text-lg font-semibold">{appraisal.profiles.department}</p>
+                <p className="text-lg font-semibold">{appraisal.profiles?.department}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Designation</p>
-                <p className="text-lg font-semibold">{appraisal.profiles.designation}</p>
+                <p className="text-lg font-semibold">{appraisal.profiles?.designation}</p>
               </div>
             </div>
           </CardContent>
