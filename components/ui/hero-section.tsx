@@ -1,23 +1,24 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { AnimatedText } from "@/components/ui/animated-text"
-import Link from "next/link"
-import { ArrowRight, BookOpen, Users, TrendingUp } from "lucide-react"
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { AnimatedText } from "@/components/ui/animated-text";
+import Link from "next/link";
+import { ArrowRight, BookOpen, Users, TrendingUp } from "lucide-react";
 
 const heroTexts = [
-  "Empowering Faculty Performance Evaluation",
-  "Streamlining Academic Excellence",
-  "Transforming Educational Assessment",
-  "Building Better Academic Futures",
-]
+  "Automated Faculty Appraisal & Development System",
+  "Streamlining Self-Appraisal Processes",
+  "Ensuring Transparency and Efficiency",
+  "Empowering VESIT Faculty Excellence",
+];
 
 const features = [
   {
     icon: BookOpen,
     title: "Comprehensive Evaluation",
-    description: "Multi-dimensional assessment covering teaching, research, and service",
+    description:
+      "Multi-dimensional assessment covering teaching, research, and service",
   },
   {
     icon: Users,
@@ -29,7 +30,7 @@ const features = [
     title: "Data-Driven Insights",
     description: "Analytics and reporting for informed decision making",
   },
-]
+];
 
 export function HeroSection() {
   return (
@@ -42,10 +43,7 @@ export function HeroSection() {
       {/* Floating Elements */}
       <motion.div
         className="absolute top-20 left-10 w-20 h-20 bg-accent/10 rounded-full blur-xl"
-        animate={{
-          y: [0, -20, 0],
-          x: [0, 10, 0],
-        }}
+        animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
         transition={{
           duration: 6,
           repeat: Number.POSITIVE_INFINITY,
@@ -54,10 +52,7 @@ export function HeroSection() {
       />
       <motion.div
         className="absolute bottom-20 right-10 w-32 h-32 bg-primary/10 rounded-full blur-xl"
-        animate={{
-          y: [0, 20, 0],
-          x: [0, -15, 0],
-        }}
+        animate={{ y: [0, 20, 0], x: [0, -15, 0] }}
         transition={{
           duration: 8,
           repeat: Number.POSITIVE_INFINITY,
@@ -66,26 +61,30 @@ export function HeroSection() {
       />
 
       <div className="container mx-auto px-4 py-20 relative z-10">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto text-center">
           {/* Hero Content */}
           <motion.div
-            className="text-center mb-16"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
             <motion.h1
-              className="text-5xl md:text-7xl font-bold mb-6 text-primary leading-tight"
+              className="text-5xl md:text-7xl font-bold text-center text-primary leading-tight"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1, delay: 0.2 }}
             >
-              <span className="block mb-2">Shikshak</span>
-              <span className="text-accent">Sarthi</span>
+              <img
+                src="https://vesit.ves.ac.in/navbar2024nobackground.png"
+                alt="VESIT Logo"
+                className="h-24 w-auto mx-auto mb-4 object-contain"
+              />
+              <span className="block">VESIT</span>
+              <span className="text-accent">Faculty Portal</span>
             </motion.h1>
 
             <motion.div
-              className="text-xl md:text-2xl text-muted-foreground mb-8 h-16 flex items-center justify-center"
+              className="text-xl md:text-2xl text-muted-foreground mb-6 h-16 flex items-center justify-center"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.5 }}
@@ -99,8 +98,11 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.7 }}
             >
-              A comprehensive faculty appraisal system designed to streamline performance evaluation, enhance
-              professional development, and foster academic excellence in educational institutions.
+              The Automated Faculty Appraisal & Development System is a
+              web-based platform designed to streamline faculty self-appraisal
+              processes. Faculty can log activities like research, seminars,
+              projects, and lectures securely, while administrators gain
+              real-time insights to support transparent decision-making.
             </motion.p>
 
             <motion.div
@@ -111,7 +113,7 @@ export function HeroSection() {
             >
               <Button asChild size="lg" className="group">
                 <Link href="/auth/login">
-                  Get Started
+                  Login
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
@@ -139,13 +141,17 @@ export function HeroSection() {
                 whileHover={{ y: -5 }}
               >
                 <feature.icon className="h-12 w-12 text-accent mb-4 group-hover:scale-110 transition-transform duration-300" />
-                <h3 className="text-xl font-semibold mb-2 text-card-foreground">{feature.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl font-semibold mb-2 text-card-foreground">
+                  {feature.title}
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  {feature.description}
+                </p>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </div>
     </section>
-  )
+  );
 }
