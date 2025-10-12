@@ -44,9 +44,9 @@ export default async function AdminAppraisalsPage({
   // Get user profile and check admin role
   const { data: profile } = await supabase.from("users").select("*").eq("id", user.id).single()
 
-  // if (!profile || profile.role !== "admin") {
-  //   redirect("/dashboard")
-  // }
+  if (!profile || profile.role !== "admin") {
+    redirect("/dashboard")
+  }
 
   // Build query
   let query = supabase
@@ -73,10 +73,10 @@ export default async function AdminAppraisalsPage({
   const filteredAppraisals = appraisals?.filter((appraisal) => {
     if (!params.search) return true
     const searchTerm = params.search.toLowerCase()
-    return ({}
-      // appraisal.title.toLowerCase().includes(searchTerm) ||
-      // appraisal.user?.full_name.toLowerCase().includes(searchTerm) ||
-      // appraisal.user?.department?.toLowerCase().includes(searchTerm)
+    return (
+      appraisal.title.toLowerCase().includes(searchTerm) ||
+      appraisal.user?.full_name.toLowerCase().includes(searchTerm) ||
+      appraisal.user?.department?.toLowerCase().includes(searchTerm)
     )
   })
 
