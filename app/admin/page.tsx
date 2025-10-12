@@ -101,28 +101,28 @@ export default async function AdminDashboardPage() {
             title="Total Users"
             value={totalUsers}
             description={`${facultyCount} faculty, ${adminCount} admin`}
-            icon={Users}
+            iconName="Users"
             delay={0}
           />
           <StatsCard
             title="Total Appraisals"
             value={totalAppraisals}
             description="All time submissions"
-            icon={FileText}
+            iconName="FileText"
             delay={0.1}
           />
           <StatsCard
             title="Pending Reviews"
             value={pendingAppraisals}
             description="Awaiting admin action"
-            icon={Clock}
+            iconName="Clock"
             delay={0.2}
           />
           <StatsCard
             title="Approval Rate"
             value={totalAppraisals > 0 ? `${Math.round((approvedAppraisals / totalAppraisals) * 100)}%` : "0%"}
             description="Overall success rate"
-            icon={TrendingUp}
+            iconName="TrendingUp"
             delay={0.3}
           />
         </div>
