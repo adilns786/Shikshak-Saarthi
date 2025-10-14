@@ -1,231 +1,282 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { DashboardLayout } from "@/components/ui/dashboard-layout"
-import { StatsCard } from "@/components/ui/stats-card"
-// import { RecentActivity } from "@/components/ui/recent-activity"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import Link from "next/link"
-import { FileText, BookOpen, Calendar, TrendingUp, PlusCircle, Clock } from "lucide-react"
+"use client";
 
-export default async function DashboardPage() {
-  const supabase = await createClient()
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { auth, firestore } from "@/firebaseConfig";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    console.log("No user found, redirecting to login")
-    redirect("/auth/login")
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import {
+  FileText,
+  BookOpen,
+  Calendar,
+  TrendingUp,
+  LogOut,
+  PlusCircle,
+  Clock,
+} from "lucide-react";
+
+export default function DashboardPage() {
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  // 🔹 Check login + redirect based on role
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("👀 Dashboard Auth listener:", user ? user.uid : "none");
+
+      if (!user) {
+        console.log("❌ No user, redirecting to login");
+        window.location.href = "/auth/login";
+        return;
+      }
+
+      try {
+        const userDoc = await getDoc(doc(firestore, "users", user.uid));
+        if (!userDoc.exists()) {
+          console.warn("⚠️ No Firestore record found for user");
+          await signOut(auth);
+          window.location.href = "/auth/login";
+          return;
+        }
+
+        const data = userDoc.data();
+        console.log("✅ Dashboard loaded for role:", data.role);
+
+        setProfile(data);
+
+        if (data.role === "misAdmin") {
+          console.log("🔁 Redirecting to /admin");
+          window.location.href = "/admin";
+          return;
+        }
+
+        setLoading(false);
+      } catch (err) {
+        console.error("💥 Error fetching user data:", err);
+        await signOut(auth);
+        window.location.href = "/auth/login";
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.replace("/auth/login");
+  };
+
+  if (loading || !profile) {
+    return (
+      <div className="flex items-center justify-center h-screen text-lg font-medium">
+        Loading Dashboard...
+      </div>
+    );
   }
 
-  // Get user profile
-  const { data: profile } = await supabase.from("users").select("*").eq("id", user.id).single()
-  console.log("User:", user)
-  console.log("User Profile:", profile)
-  if (!profile) {
-    console.log("No profile found, redirecting to login")
-    redirect("/auth/login")
-  }
+  const { name, role } = profile;
 
-  // Get dashboard stats
-  const [appraisalsResult, publicationsResult, eventsResult] = await Promise.all([
-    supabase
-      .from("appraisals")
-      .select("id, status, created_at, title")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("publications")
-      .select("id, title, publication_year, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("events")
-      .select("id, title, start_date, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false }),
-  ])
-
-  const appraisals = appraisalsResult.data || []
-  const publications = publicationsResult.data || []
-  const events = eventsResult.data || []
-
-  // Calculate stats
-  const totalAppraisals = appraisals.length
-  const draftAppraisals = appraisals.filter((a) => a.status === "draft").length
-  const submittedAppraisals = appraisals.filter((a) => a.status === "submitted").length
-  const approvedAppraisals = appraisals.filter((a) => a.status === "approved").length
-  const currentYearPublications = publications.filter((p) => p.publication_year === new Date().getFullYear()).length
-
-  // Recent activity
-  const recentActivity = [
-    ...appraisals.slice(0, 3).map((a) => ({
-      id: a.id,
-      type: "appraisal" as const,
-      title: a.title,
-      status: a.status,
-      date: a.created_at,
-      href: `/appraisal/${a.id}`,
-    })),
-    ...publications.slice(0, 2).map((p) => ({
-      id: p.id,
-      type: "publication" as const,
-      title: p.title,
-      date: p.created_at,
-      href: `/publications/${p.id}`,
-    })),
-    ...events.slice(0, 2).map((e) => ({
-      id: e.id,
-      type: "event" as const,
-      title: e.title,
-      date: e.created_at,
-      href: `/events/${e.id}`,
-    })),
-  ]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5)
+  // Mock stats for now (replace with Firestore data if needed)
+  const totalAppraisals = 10;
+  const draftAppraisals = 3;
+  const submittedAppraisals = 4;
+  const approvedAppraisals = 3;
+  const currentYearPublications = 2;
+  const events = 5;
 
   return (
-    <DashboardLayout user={profile}>
-      <div className="space-y-6">
-        {/* Welcome Section */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-display font-bold text-primary">
-              Welcome back, {profile.full_name?.split(" ")[0]}!
-            </h1>
-            <p className="text-muted-foreground mt-1">Here's an overview of your academic activities and progress.</p>
-          </div>
-          <Button asChild>
-            <Link href="/appraisal/new">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Appraisal
-            </Link>
-          </Button>
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background p-6">
+      {/* Header */}
+      <header className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-display font-bold text-primary">
+            Welcome back, {name}!
+          </h1>
+          <p className="text-muted-foreground mt-1 capitalize">Role: {role}</p>
         </div>
+        <Button variant="destructive" onClick={handleLogout}>
+          <LogOut className="mr-2 h-4 w-4" /> Logout
+        </Button>
+      </header>
 
-        {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatsCard
-            title="Total Appraisals"
-            value={totalAppraisals}
-            description="All time appraisals"
-            iconName="FileText"
-            delay={0}
-          />
-          <StatsCard
-            title="Publications"
-            value={publications.length}
-            description={`${currentYearPublications} this year`}
-            iconName="BookOpen"
-            delay={0.1}
-          />
-          <StatsCard
-            title="Events Attended"
-            value={events.length}
-            description="Conferences & workshops"
-            iconName="Calendar"
-            delay={0.2}
-          />
-          <StatsCard
-            title="Approval Rate"
-            value={totalAppraisals > 0 ? `${Math.round((approvedAppraisals / totalAppraisals) * 100)}%` : "0%"}
-            description="Appraisal success rate"
-            iconName="TrendingUp"
-            delay={0.3}
-          />
-        </div>
+      {/* Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <FileText className="h-5 w-5 text-primary" />
+              <span>Total Appraisals</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{totalAppraisals}</p>
+            <p className="text-muted-foreground text-sm">All time</p>
+          </CardContent>
+        </Card>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Appraisal Status */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                Appraisal Overview
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/appraisal">View All</Link>
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {totalAppraisals === 0 ? (
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-2">No appraisals yet</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Start your first appraisal to track your academic progress.
-                  </p>
-                  <Button asChild>
-                    <Link href="/appraisal/new">
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Create First Appraisal
-                    </Link>
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-yellow-600">{draftAppraisals}</div>
-                      <div className="text-sm text-muted-foreground">Draft</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{submittedAppraisals}</div>
-                      <div className="text-sm text-muted-foreground">Under Review</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{approvedAppraisals}</div>
-                      <div className="text-sm text-muted-foreground">Approved</div>
-                    </div>
-                  </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <BookOpen className="h-5 w-5 text-primary" />
+              <span>Publications</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{currentYearPublications}</p>
+            <p className="text-muted-foreground text-sm">This year</p>
+          </CardContent>
+        </Card>
 
-                  {totalAppraisals > 0 && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Completion Progress</span>
-                        <span>{Math.round((approvedAppraisals / totalAppraisals) * 100)}%</span>
-                      </div>
-                      <Progress value={(approvedAppraisals / totalAppraisals) * 100} />
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              <span>Events Attended</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{events}</p>
+            <p className="text-muted-foreground text-sm">
+              Conferences & Workshops
+            </p>
+          </CardContent>
+        </Card>
 
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button asChild className="w-full justify-start bg-transparent" variant="outline">
-                <Link href="/appraisal/new">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  New Appraisal
-                </Link>
-              </Button>
-              <Button asChild className="w-full justify-start bg-transparent" variant="outline">
-                <Link href="/publications">
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  Manage Publications
-                </Link>
-              </Button>
-              <Button asChild className="w-full justify-start bg-transparent" variant="outline">
-                <Link href="/profile">
-                  <Clock className="mr-2 h-4 w-4" />
-                  Update Profile
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Activity */}
-        {/* <RecentActivity activities={recentActivity} /> */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              <span>Approval Rate</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">
+              {totalAppraisals > 0
+                ? `${Math.round((approvedAppraisals / totalAppraisals) * 100)}%`
+                : "0%"}
+            </p>
+            <p className="text-muted-foreground text-sm">Success rate</p>
+          </CardContent>
+        </Card>
       </div>
-    </DashboardLayout>
-  )
+
+      {/* Appraisal Progress */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Appraisal Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4 text-center mb-4">
+            <div>
+              <p className="text-2xl font-bold text-yellow-600">
+                {draftAppraisals}
+              </p>
+              <p className="text-sm text-muted-foreground">Draft</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-blue-600">
+                {submittedAppraisals}
+              </p>
+              <p className="text-sm text-muted-foreground">Submitted</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-green-600">
+                {approvedAppraisals}
+              </p>
+              <p className="text-sm text-muted-foreground">Approved</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Completion Progress</span>
+              <span>
+                {Math.round((approvedAppraisals / totalAppraisals) * 100)}%
+              </span>
+            </div>
+            <Progress
+              value={(approvedAppraisals / totalAppraisals) * 100}
+              className="h-2"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {/* <Button
+            className="w-full justify-start bg-transparent"
+            variant="outline"
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Appraisal
+          </Button>
+          <Button
+            className="w-full justify-start bg-transparent"
+            variant="outline"
+          >
+            <BookOpen className="mr-2 h-4 w-4" />
+            Manage Publications
+          </Button>
+          <Button
+            className="w-full justify-start bg-transparent"
+            variant="outline"
+          >
+            <Clock className="mr-2 h-4 w-4" />
+            Update Profile
+          </Button> */}
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {[
+              {
+                title: "Profile",
+                subtitle: "Profile Details",
+                href: "dashboard/forms/profile",
+              },
+              {
+                title: "Department",
+                subtitle: "Name of the Department",
+                href: "/form/department_name",
+              },
+              {
+                title: "CAS Promotion Stage",
+                subtitle: "Under CAS Promotion for Stage/Level For",
+                href: "/form/cas_promotion_stage",
+              },
+              {
+                title: "Faculty",
+                subtitle: "Faculty of",
+                href: "/form/faculty_name",
+              },
+              {
+                title: "Academic Year",
+                subtitle: "ACADEMIC YEAR",
+                href: "/form/academic_year",
+              },
+            ].map((item, index) => (
+              <a
+                key={index}
+                href={item.href}
+                className="block p-4 border rounded-lg hover:shadow-lg transition-shadow"
+              >
+                <h2 className="text-lg font-semibold text-primary">
+                  {item.title}
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {item.subtitle}
+                </p>
+              </a>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
