@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
-import { auth, firestore } from "../../firebaseConfig";
+import { auth, db as firestore } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 
