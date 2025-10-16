@@ -10,38 +10,48 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 
-// ===== Basic Details Module (formHeader) =====
-const basicDetailsFields = [
+// ===== Personal & Contact Information Fields (part_a.personal_in) =====
+const personalContactFields = [
+  { id: "name", label: "Name (Block Letters)", type: "text", required: true },
+  { id: "department", label: "Department", type: "text", required: true },
   {
-    id: "institute_name",
-    label: "Name of the Institute / College",
+    id: "current_designation",
+    label: "Current Designation & Academic Level",
     type: "text",
     required: true,
   },
   {
-    id: "department_name",
-    label: "Name of the Department",
+    id: "date_last_promotion",
+    label: "Date of Last Promotion",
+    type: "date",
+    required: true,
+  },
+  { id: "level_cas", label: "Level under CAS", type: "text", required: true },
+  {
+    id: "designation_applied",
+    label: "Designation applied for",
     type: "text",
     required: true,
   },
   {
-    id: "cas_promotion_stage",
-    label: "Under CAS Promotion for Stage/Level For",
-    type: "text",
+    id: "date_eligibility",
+    label: "Date of Eligibility for Promotion",
+    type: "date",
     required: true,
   },
-  { id: "faculty_name", label: "Faculty of", type: "text", required: true },
-  { id: "academic_year", label: "Academic Year", type: "text", required: true },
+  { id: "address", label: "Address", type: "text", required: true },
+  { id: "telephone", label: "Telephone", type: "tel", required: true },
+  { id: "email", label: "Email", type: "email", required: true },
 ];
 
-export default function BasicDetailsModule() {
-  const [formHeader, setFormHeader] = useState<any>({});
+export default function PersonalContactModule() {
+  const [personalIn, setPersonalIn] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Fetch user and their formHeader
+  // Fetch user and part_a.personal_in
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -55,13 +65,12 @@ export default function BasicDetailsModule() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          // Load only nested formHeader
-          setFormHeader(data?.formHeader || {});
+          setPersonalIn(data?.part_a?.personal_in || {});
         } else {
-          setFormHeader({});
+          setPersonalIn({});
         }
       } catch (err) {
-        console.error("Error fetching formHeader:", err);
+        console.error("Error fetching personal info:", err);
       } finally {
         setLoading(false);
       }
@@ -71,7 +80,7 @@ export default function BasicDetailsModule() {
   }, [router]);
 
   const handleChange = (id: string, value: string) => {
-    setFormHeader((prev: any) => ({ ...prev, [id]: value }));
+    setPersonalIn((prev: any) => ({ ...prev, [id]: value }));
   };
 
   const handleSave = async () => {
@@ -82,17 +91,17 @@ export default function BasicDetailsModule() {
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
-        // Update only the formHeader field (nested merge)
-        await updateDoc(userRef, { formHeader });
+        // update nested path part_a.personal_in
+        await updateDoc(userRef, { "part_a.personal_in": personalIn });
       } else {
-        // Create a new document with formHeader key
-        await setDoc(userRef, { formHeader });
+        // create new document with nested path
+        await setDoc(userRef, { part_a: { personal_in: personalIn } });
       }
 
       setEditing(false);
-      alert("Basic details saved successfully!");
+      alert("Personal & Contact Information saved successfully!");
     } catch (err) {
-      console.error("Error saving formHeader:", err);
+      console.error("Error saving personal info:", err);
       alert("Failed to save details");
     }
   };
@@ -119,12 +128,12 @@ export default function BasicDetailsModule() {
             <span>Back</span>
           </Button>
           <CardTitle className="text-2xl font-bold text-primary">
-            Basic Details (Form Header)
+            Personal & Contact Information
           </CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {basicDetailsFields.map((field) => (
+          {personalContactFields.map((field) => (
             <div key={field.id} className="flex flex-col">
               <label className="text-sm font-medium text-muted-foreground mb-1">
                 {field.label}
@@ -132,7 +141,7 @@ export default function BasicDetailsModule() {
               <input
                 type={field.type}
                 required={field.required}
-                value={formHeader[field.id] || ""}
+                value={personalIn[field.id] || ""}
                 onChange={(e) => handleChange(field.id, e.target.value)}
                 disabled={!editing}
                 className={`p-2 border rounded-md ${

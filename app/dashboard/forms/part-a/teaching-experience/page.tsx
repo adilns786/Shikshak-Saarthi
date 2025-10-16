@@ -10,38 +10,41 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 
-// ===== Basic Details Module (formHeader) =====
-const basicDetailsFields = [
+// Fields for Teaching & Research Experience
+const experienceFields = [
   {
-    id: "institute_name",
-    label: "Name of the Institute / College",
-    type: "text",
+    id: "pg_years",
+    label: "P.G. Classes (Years)",
+    type: "number",
     required: true,
   },
   {
-    id: "department_name",
-    label: "Name of the Department",
-    type: "text",
+    id: "ug_years",
+    label: "U.G. Classes (Years)",
+    type: "number",
     required: true,
   },
   {
-    id: "cas_promotion_stage",
-    label: "Under CAS Promotion for Stage/Level For",
+    id: "research_years",
+    label: "Research Experience (Years)",
+    type: "number",
+    required: true,
+  },
+  {
+    id: "specialization",
+    label: "Field of Specialization",
     type: "text",
     required: true,
   },
-  { id: "faculty_name", label: "Faculty of", type: "text", required: true },
-  { id: "academic_year", label: "Academic Year", type: "text", required: true },
 ];
 
-export default function BasicDetailsModule() {
-  const [formHeader, setFormHeader] = useState<any>({});
+export default function TeachingResearchExperience() {
+  const [experience, setExperience] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Fetch user and their formHeader
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -55,13 +58,12 @@ export default function BasicDetailsModule() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          // Load only nested formHeader
-          setFormHeader(data?.formHeader || {});
+          setExperience(data?.part_a?.teaching_research_experience || {});
         } else {
-          setFormHeader({});
+          setExperience({});
         }
       } catch (err) {
-        console.error("Error fetching formHeader:", err);
+        console.error("Error fetching experience:", err);
       } finally {
         setLoading(false);
       }
@@ -70,30 +72,23 @@ export default function BasicDetailsModule() {
     return () => unsubscribe();
   }, [router]);
 
-  const handleChange = (id: string, value: string) => {
-    setFormHeader((prev: any) => ({ ...prev, [id]: value }));
+  const handleChange = (id: string, value: string | number) => {
+    setExperience((prev: any) => ({ ...prev, [id]: value }));
   };
 
   const handleSave = async () => {
     if (!userId) return;
 
+    const userRef = doc(firestore, "users", userId);
     try {
-      const userRef = doc(firestore, "users", userId);
-      const userSnap = await getDoc(userRef);
-
-      if (userSnap.exists()) {
-        // Update only the formHeader field (nested merge)
-        await updateDoc(userRef, { formHeader });
-      } else {
-        // Create a new document with formHeader key
-        await setDoc(userRef, { formHeader });
-      }
-
+      await updateDoc(userRef, {
+        "part_a.teaching_research_experience": experience,
+      });
       setEditing(false);
-      alert("Basic details saved successfully!");
+      alert("Teaching & Research Experience saved successfully!");
     } catch (err) {
-      console.error("Error saving formHeader:", err);
-      alert("Failed to save details");
+      console.error("Error saving experience:", err);
+      alert("Failed to save experience");
     }
   };
 
@@ -119,12 +114,12 @@ export default function BasicDetailsModule() {
             <span>Back</span>
           </Button>
           <CardTitle className="text-2xl font-bold text-primary">
-            Basic Details (Form Header)
+            Teaching & Research Experience
           </CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {basicDetailsFields.map((field) => (
+          {experienceFields.map((field) => (
             <div key={field.id} className="flex flex-col">
               <label className="text-sm font-medium text-muted-foreground mb-1">
                 {field.label}
@@ -132,7 +127,7 @@ export default function BasicDetailsModule() {
               <input
                 type={field.type}
                 required={field.required}
-                value={formHeader[field.id] || ""}
+                value={experience[field.id] || ""}
                 onChange={(e) => handleChange(field.id, e.target.value)}
                 disabled={!editing}
                 className={`p-2 border rounded-md ${
@@ -156,7 +151,7 @@ export default function BasicDetailsModule() {
               </>
             ) : (
               <Button variant="default" onClick={() => setEditing(true)}>
-                Edit Details
+                Edit
               </Button>
             )}
           </div>
