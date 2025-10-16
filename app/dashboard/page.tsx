@@ -241,24 +241,35 @@ export default function DashboardPage() {
                 href: "dashboard/forms/profile",
               },
               {
-                title: "Department",
-                subtitle: "Name of the Department",
-                href: "/form/department_name",
+                title: "Faculty Details",
+                subtitle: "Personal & Contact Information",
+                href: "dashboard/forms/part-a/personal-info",
               },
               {
-                title: "CAS Promotion Stage",
-                subtitle: "Under CAS Promotion for Stage/Level For",
-                href: "/form/cas_promotion_stage",
+                title: "Qualifications",
+                subtitle: "Academic Qualifications",
+                href: "dashboard/forms/part-a/qualifications",
               },
               {
-                title: "Faculty",
-                subtitle: "Faculty of",
-                href: "/form/faculty_name",
+                title: "Research Degrees",
+                subtitle: "Information about research-based qualifications",
+                href: "dashboard/forms/part-a/research",
               },
               {
-                title: "Academic Year",
-                subtitle: "ACADEMIC YEAR",
-                href: "/form/academic_year",
+                title: "Employment History",
+                subtitle: "Information about employment history",
+                href: "dashboard/forms/part-a/employment-history",
+              },
+              {
+                title: "Teaching Experience",
+                subtitle: "Information about teaching experience",
+                href: "dashboard/forms/part-a/teaching-experience",
+              },
+              {
+                title: "Courses and FDP Module",
+                subtitle:
+                  "faculty development, refresher courses, orientation, MOOCs, etc",
+                href: "dashboard/forms/part-a/courses_fdp",
               },
             ].map((item, index) => (
               <a
