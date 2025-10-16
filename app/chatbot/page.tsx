@@ -47,7 +47,9 @@ export default function LlmFormMapper() {
       }
     } catch (err) {
       console.error("Error persisting to localStorage:", err);
-      setError("Failed to save to localStorage. Please check browser settings.");
+      setError(
+        "Failed to save to localStorage. Please check browser settings."
+      );
     }
   }
 
@@ -97,7 +99,7 @@ export default function LlmFormMapper() {
       }
 
       const data = await res.json();
-      
+
       // expect data.mappings to be array of {id, value}
       if (Array.isArray(data.mappings)) {
         setMappings(data.mappings);
@@ -116,8 +118,8 @@ export default function LlmFormMapper() {
     } catch (err) {
       console.error("Error fetching mappings:", err);
       setError(
-        err instanceof Error 
-          ? `Failed to fetch mappings: ${err.message}` 
+        err instanceof Error
+          ? `Failed to fetch mappings: ${err.message}`
           : "Failed to fetch mappings. Please try again."
       );
     } finally {
@@ -138,7 +140,7 @@ export default function LlmFormMapper() {
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       submitMessage();
     }
@@ -151,33 +153,36 @@ export default function LlmFormMapper() {
           <CardTitle>Form Mapper — LLM Assistant</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-3 items-start">
-            <Input
+          <div className="flex flex-col gap-3">
+            <textarea
               placeholder="Type a message to map to form fields..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="flex-1"
+              className="w-full min-h-[120px] p-3 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
             />
-            <Button onClick={() => submitMessage()} disabled={loading}>
-              {loading ? "Mapping..." : "Map"}
-            </Button>
-            <Button
-              variant="ghost"
-              type="button"
-              onClick={() => {
-                setMessage("");
-                setMappings([]);
-                setError(null);
-              }}
-            >
-              Clear
-            </Button>
+            <div className="flex gap-3">
+              <Button onClick={() => submitMessage()} disabled={loading}>
+                {loading ? "Mapping..." : "Map"}
+              </Button>
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={() => {
+                  setMessage("");
+                  setMappings([]);
+                  setError(null);
+                }}
+              >
+                Clear
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              Enter a free-text sentence. The assistant will suggest field
+              mappings. Click "Apply" to save each mapping to localStorage (key:{" "}
+              <code>llm</code>).
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mt-2">
-            Enter a free-text sentence. The assistant will suggest field mappings.
-            Click "Apply" to save each mapping to localStorage (key: <code>llm</code>).
-          </p>
         </CardContent>
       </Card>
 
@@ -254,8 +259,9 @@ export default function LlmFormMapper() {
 
       <div className="mt-6 text-sm text-muted-foreground">
         <p>
-          Stored mappings are available in <code>localStorage.getItem('llm')</code> as a
-          JSON object mapping IDs → values.
+          Stored mappings are available in{" "}
+          <code>localStorage.getItem('llm')</code> as a JSON object mapping IDs
+          → values.
         </p>
       </div>
     </div>
