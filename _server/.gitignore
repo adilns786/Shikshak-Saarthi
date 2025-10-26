@@ -1,0 +1,22 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+venv.bak/
+
+# Testing and packaging artefacts
+.pytest_cache/
+*.egg-info/
+pip-wheel-metadata/
+build/
+dist/
+
+# IDE/editor folders (optional)
+.vscode/
+.idea/
