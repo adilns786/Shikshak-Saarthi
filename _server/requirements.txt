@@ -1,0 +1,25 @@
+# PBAS Form Generator Dependencies
+
+# Core document generation
+python-docx>=0.8.11
+
+# Web server framework
+Flask>=2.3.0
+Flask-CORS>=4.0.0
+
+# HTTP requests (for demo script)
+requests>=2.31.0
+
+# Optional: For production deployment
+gunicorn>=21.2.0
+waitress>=2.1.2
+
+# Optional: For enhanced features
+python-dateutil>=2.8.2
+Pillow>=10.0.0  # If you want to add images/logos to forms
+
+# Development dependencies (optional)
+pytest>=7.4.0
+pytest-flask>=1.2.0
+black>=23.7.0
+flake8>=6.1.0
