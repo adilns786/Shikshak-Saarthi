@@ -240,6 +240,24 @@ export default function DashboardPage() {
       href: "/dashboard/forms/part-b/table1",
       icon: FileText,
     },
+    {
+      title: "Research & Academic Contribution",
+      subtitle: "Self & Verified Contributions",
+      href: "/dashboard/forms/part-b/table2",
+      icon: FileText,
+    },
+    {
+      title: "Patents, Policy, and Awards Module",
+      subtitle: "Patents, Policy, and Awards Assessment",
+      href: "/dashboard/forms/part-b/patents_policy_awards",
+      icon: FileText,
+    },
+    {
+      title: "Lectures & Conference Presentations",
+      subtitle: "Lectures & Conference Presentations Assessment",
+      href: "/dashboard/forms/part-b/invited_lectures",
+      icon: FileText,
+    },
   ];
 
   return (
