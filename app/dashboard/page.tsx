@@ -29,7 +29,9 @@ import {
   Award,
   Briefcase,
   GraduationCap,
+  Bot
 } from "lucide-react";
+
 import {
   Dialog,
   DialogContent,
@@ -279,7 +281,14 @@ export default function DashboardPage() {
           </Button>
         </div>
       </header>
-
+      <Button
+        variant="default"
+        className="fixed bottom-6 right-6 rounded-full shadow-xl flex items-center space-x-2 hover:bg-primary hover:text-white transition"
+        onClick={() => router.push("/chatbot")}
+      >
+        <Bot className="h-5 w-5" />
+        <span>AI Assistant</span>
+      </Button>
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="hover:shadow-lg transition-shadow">

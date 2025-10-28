@@ -14,31 +14,11 @@ import { ArrowLeft } from "lucide-react";
 const personalContactFields = [
   { id: "name", label: "Name (Block Letters)", type: "text", required: true },
   { id: "department", label: "Department", type: "text", required: true },
-  {
-    id: "current_designation",
-    label: "Current Designation & Academic Level",
-    type: "text",
-    required: true,
-  },
-  {
-    id: "date_last_promotion",
-    label: "Date of Last Promotion",
-    type: "date",
-    required: true,
-  },
+  { id: "current_designation", label: "Current Designation & Academic Level", type: "text", required: true },
+  { id: "date_last_promotion", label: "Date of Last Promotion", type: "date", required: true },
   { id: "level_cas", label: "Level under CAS", type: "text", required: true },
-  {
-    id: "designation_applied",
-    label: "Designation applied for",
-    type: "text",
-    required: true,
-  },
-  {
-    id: "date_eligibility",
-    label: "Date of Eligibility for Promotion",
-    type: "date",
-    required: true,
-  },
+  { id: "designation_applied", label: "Designation applied for", type: "text", required: true },
+  { id: "date_eligibility", label: "Date of Eligibility for Promotion", type: "date", required: true },
   { id: "address", label: "Address", type: "text", required: true },
   { id: "telephone", label: "Telephone", type: "tel", required: true },
   { id: "email", label: "Email", type: "email", required: true },
@@ -50,6 +30,7 @@ export default function PersonalContactModule() {
   const [editing, setEditing] = useState(false);
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<Record<string, string>>({});
 
   // Fetch user and part_a.personal_in
   useEffect(() => {
@@ -63,12 +44,22 @@ export default function PersonalContactModule() {
       try {
         const docRef = doc(firestore, "users", user.uid);
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setPersonalIn(data?.part_a?.personal_in || {});
-        } else {
-          setPersonalIn({});
-        }
+        const data = docSnap.exists() ? docSnap.data()?.part_a?.personal_in || {} : {};
+        const llmStorage = JSON.parse(localStorage.getItem("llm") || "{}");
+
+        // Auto-fill empty fields from localStorage
+        const filledData: Record<string, any> = { ...data };
+        const suggestionData: Record<string, string> = {};
+        personalContactFields.forEach((field) => {
+          if (!data[field.id] && llmStorage[field.id]) {
+            filledData[field.id] = llmStorage[field.id];
+          } else if (data[field.id] && llmStorage[field.id] && data[field.id] !== llmStorage[field.id]) {
+            suggestionData[field.id] = llmStorage[field.id];
+          }
+        });
+
+        setPersonalIn(filledData);
+        setSuggestions(suggestionData);
       } catch (err) {
         console.error("Error fetching personal info:", err);
       } finally {
@@ -83,6 +74,28 @@ export default function PersonalContactModule() {
     setPersonalIn((prev: any) => ({ ...prev, [id]: value }));
   };
 
+  const handleApplySuggestion = (id: string) => {
+    setPersonalIn((prev: any) => ({ ...prev, [id]: suggestions[id] }));
+    setSuggestions((prev) => {
+      const newS = { ...prev };
+      delete newS[id];
+      return newS;
+    });
+  };
+
+  const handleUndoSuggestion = (id: string) => {
+    setSuggestions((prev) => {
+      const newS = { ...prev, [id]: JSON.parse(localStorage.getItem("llm") || "{}")[id] };
+      return newS;
+    });
+  };
+
+  const handleApplyAll = () => {
+    const allSuggestions = { ...suggestions };
+    setPersonalIn((prev) => ({ ...prev, ...allSuggestions }));
+    setSuggestions({});
+  };
+
   const handleSave = async () => {
     if (!userId) return;
 
@@ -91,12 +104,13 @@ export default function PersonalContactModule() {
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
-        // update nested path part_a.personal_in
         await updateDoc(userRef, { "part_a.personal_in": personalIn });
       } else {
-        // create new document with nested path
         await setDoc(userRef, { part_a: { personal_in: personalIn } });
       }
+
+      // Save updated values in localStorage as well
+      localStorage.setItem("llm", JSON.stringify({ ...(JSON.parse(localStorage.getItem("llm") || "{}")), ...personalIn }));
 
       setEditing(false);
       alert("Personal & Contact Information saved successfully!");
@@ -114,6 +128,8 @@ export default function PersonalContactModule() {
     );
   }
 
+  const hasSuggestions = Object.keys(suggestions).length > 0;
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background via-muted/20 to-background p-4">
       <Card className="w-full max-w-lg shadow-xl rounded-2xl">
@@ -130,6 +146,11 @@ export default function PersonalContactModule() {
           <CardTitle className="text-2xl font-bold text-primary">
             Personal & Contact Information
           </CardTitle>
+          {hasSuggestions && editing && (
+            <Button variant="default" size="sm" onClick={handleApplyAll}>
+              Apply All Suggestions
+            </Button>
+          )}
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -150,6 +171,23 @@ export default function PersonalContactModule() {
                     : "border-gray-200 bg-gray-100"
                 }`}
               />
+
+              {/* Show suggestion if exists */}
+              {editing && suggestions[field.id] && (
+                <div className="flex items-center justify-between mt-1 bg-yellow-50 p-2 rounded-md border border-yellow-200">
+                  <span className="text-sm text-yellow-800">
+                    Suggested: {suggestions[field.id]}
+                  </span>
+                  <div className="flex space-x-2">
+                    <Button size="sm" variant="default" onClick={() => handleApplySuggestion(field.id)}>
+                      Apply
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleUndoSuggestion(field.id)}>
+                      Undo
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
 
