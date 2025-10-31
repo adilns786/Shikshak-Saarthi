@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { auth, firestore } from "@/firebaseConfig";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, User } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -13,10 +13,28 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Sparkles, Trash2, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
+// 🔹 Define types for entry and user data
+interface PatentPolicyAward {
+  title: string;
+  category: string;
+  year: string;
+  status: string;
+  recognition: string;
+  score: string;
+  verification: string;
+  remarks: string;
+}
+
+interface UserData {
+  part_b?: {
+    patents_policy_awards?: PatentPolicyAward[];
+  };
+}
+
 export default function PatentsPolicyAwards() {
-  const [entries, setEntries] = useState<any[]>([]);
-  const [aiInsights, setAiInsights] = useState("");
-  const [newEntry, setNewEntry] = useState({
+  const [entries, setEntries] = useState<PatentPolicyAward[]>([]);
+  const [aiInsights, setAiInsights] = useState<string>("");
+  const [newEntry, setNewEntry] = useState<PatentPolicyAward>({
     title: "",
     category: "",
     year: "",
@@ -31,7 +49,7 @@ export default function PatentsPolicyAwards() {
 
   // 🔹 Fetch user & data
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
       if (!user) {
         router.replace("/auth/login");
         return;
@@ -40,17 +58,28 @@ export default function PatentsPolicyAwards() {
       setUserId(user.uid);
       const userRef = doc(firestore, "users", user.uid);
       const snap = await getDoc(userRef);
+
       if (snap.exists()) {
-        setEntries(snap.data()?.part_b?.patents_policy_awards || []);
+        const data = snap.data() as UserData;
+        setEntries(data.part_b?.patents_policy_awards || []);
       } else {
         setEntries([]);
       }
     });
+
     return () => unsubscribe();
   }, [router]);
 
+  // 🔹 Handle input changes with full typing
+  const handleChange = (
+    field: keyof PatentPolicyAward,
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setNewEntry({ ...newEntry, [field]: e.target.value });
+  };
+
   // 🔹 Add Entry
-  const addEntry = async () => {
+  const addEntry = async (): Promise<void> => {
     if (!newEntry.title || !newEntry.category) {
       alert("Please fill required fields (Title, Category).");
       return;
@@ -86,10 +115,10 @@ export default function PatentsPolicyAwards() {
   };
 
   // 🔹 Delete Entry
-  const deleteEntry = async (index: number) => {
+  const deleteEntry = async (index: number): Promise<void> => {
     if (!userId) return;
-    const updated = [...entries];
-    updated.splice(index, 1);
+
+    const updated = entries.filter((_, i) => i !== index);
     setEntries(updated);
 
     const userRef = doc(firestore, "users", userId);
@@ -99,7 +128,7 @@ export default function PatentsPolicyAwards() {
   };
 
   // 🔹 Generate AI Insights
-  const generateInsights = () => {
+  const generateInsights = (): void => {
     const total = entries.length;
     const patents = entries.filter((e) =>
       e.category.toLowerCase().includes("patent")
@@ -165,57 +194,43 @@ ${
           <Input
             placeholder="Title"
             value={newEntry.title}
-            onChange={(e) =>
-              setNewEntry({ ...newEntry, title: e.target.value })
-            }
+            onChange={(e) => handleChange("title", e)}
           />
           <Input
             placeholder="Category (Patent / Award / Policy)"
             value={newEntry.category}
-            onChange={(e) =>
-              setNewEntry({ ...newEntry, category: e.target.value })
-            }
+            onChange={(e) => handleChange("category", e)}
           />
           <Input
             placeholder="Year"
             value={newEntry.year}
-            onChange={(e) => setNewEntry({ ...newEntry, year: e.target.value })}
+            onChange={(e) => handleChange("year", e)}
           />
           <Input
             placeholder="Status (Granted / Applied / Received)"
             value={newEntry.status}
-            onChange={(e) =>
-              setNewEntry({ ...newEntry, status: e.target.value })
-            }
+            onChange={(e) => handleChange("status", e)}
           />
           <Input
             placeholder="Recognition (Institution / Govt. Body)"
             value={newEntry.recognition}
-            onChange={(e) =>
-              setNewEntry({ ...newEntry, recognition: e.target.value })
-            }
+            onChange={(e) => handleChange("recognition", e)}
           />
           <Input
             placeholder="Score (if applicable)"
             value={newEntry.score}
-            onChange={(e) =>
-              setNewEntry({ ...newEntry, score: e.target.value })
-            }
+            onChange={(e) => handleChange("score", e)}
           />
           <Input
             placeholder="Verification Status"
             value={newEntry.verification}
-            onChange={(e) =>
-              setNewEntry({ ...newEntry, verification: e.target.value })
-            }
+            onChange={(e) => handleChange("verification", e)}
           />
           <Textarea
             placeholder="Remarks"
             className="col-span-2"
             value={newEntry.remarks}
-            onChange={(e) =>
-              setNewEntry({ ...newEntry, remarks: e.target.value })
-            }
+            onChange={(e) => handleChange("remarks", e)}
           />
         </CardContent>
       </Card>
