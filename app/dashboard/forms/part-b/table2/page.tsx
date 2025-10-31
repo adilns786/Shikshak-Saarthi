@@ -582,12 +582,10 @@ export default function ResearchAcademicContributions() {
                             </DialogHeader>
                             <GenericForm
                               fields={fields}
-                              initialData={editingData || {}}
-                              onSave={(data, close) => {
-                                editRow(which, idx, data);
-                                if (close) close();
-                                setEditingIndex(null);
-                                setEditingData(null);
+                              initialData={{}}
+                              onSave={(data) => {
+                                addRow(which, data);
+                                setOpenAdd(false);
                               }}
                             />
                           </DialogContent>
@@ -631,7 +629,6 @@ export default function ResearchAcademicContributions() {
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      // Basic validation for required fields
       for (const f of fields) {
         if (f.required && (form[f.id] === undefined || form[f.id] === "")) {
           alert(`Please fill ${f.label}`);
@@ -639,7 +636,7 @@ export default function ResearchAcademicContributions() {
         }
       }
       onSave(form, () => {
-        /* DialogClose wrapper will close */
+        setForm({}); // optional reset
       });
     };
 
@@ -681,9 +678,7 @@ export default function ResearchAcademicContributions() {
               Cancel
             </Button>
           </DialogClose>
-          <DialogClose asChild>
-            <Button type="submit">Save</Button>
-          </DialogClose>
+          <Button type="submit">Save</Button>
         </div>
       </form>
     );
