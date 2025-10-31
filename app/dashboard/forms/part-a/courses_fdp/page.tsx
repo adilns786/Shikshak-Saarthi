@@ -28,10 +28,12 @@ const courseFields = [
 
 export default function CoursesFDPModule() {
   const [courses, setCourses] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
 
+  // 🧠 Load Firestore + localStorage
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -43,12 +45,29 @@ export default function CoursesFDPModule() {
       try {
         const docRef = doc(firestore, "users", user.uid);
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setCourses(data?.part_a?.courses_fdp || []);
-        } else {
-          setCourses([]);
-        }
+        const data = docSnap.exists() ? docSnap.data()?.part_a?.courses_fdp || [] : [];
+        const llmStorage = JSON.parse(localStorage.getItem("llm") || "{}");
+        const localCourses = llmStorage.courses_fdp || [];
+
+        const existingCourses = [...data];
+        const suggestedCourses: any[] = [];
+
+        // Detect differences or new suggestions
+        localCourses.forEach((localCourse: any) => {
+          const match = existingCourses.find(
+            (c) =>
+              c.name === localCourse.name &&
+              c.place === localCourse.place &&
+              c.duration === localCourse.duration &&
+              c.organizer === localCourse.organizer
+          );
+          if (!match) {
+            suggestedCourses.push(localCourse);
+          }
+        });
+
+        setCourses(existingCourses);
+        setSuggestions(suggestedCourses);
       } catch (err) {
         console.error("Error fetching courses:", err);
       } finally {
@@ -59,21 +78,15 @@ export default function CoursesFDPModule() {
     return () => unsubscribe();
   }, [router]);
 
-  const handleSave = async (
-    row: any,
-    index?: number,
-    closeModal?: () => void
-  ) => {
+  // 💾 Save or update course
+  const handleSave = async (row: any, index?: number, closeModal?: () => void) => {
     let updatedCourses = [...courses];
-
     if (index !== undefined) {
       updatedCourses[index] = row;
     } else {
       updatedCourses.push(row);
     }
-
     setCourses(updatedCourses);
-
     if (closeModal) closeModal();
 
     if (!userId) return;
@@ -85,11 +98,22 @@ export default function CoursesFDPModule() {
       } else {
         await setDoc(userRef, { part_a: { courses_fdp: updatedCourses } });
       }
+
+      // 💾 Save to localStorage
+      const llmStorage = JSON.parse(localStorage.getItem("llm") || "{}");
+      localStorage.setItem(
+        "llm",
+        JSON.stringify({
+          ...llmStorage,
+          courses_fdp: updatedCourses,
+        })
+      );
     } catch (err) {
       console.error("Error saving course:", err);
     }
   };
 
+  // 🧹 Delete a course
   const handleDelete = async (index: number) => {
     const updatedCourses = [...courses];
     updatedCourses.splice(index, 1);
@@ -104,6 +128,28 @@ export default function CoursesFDPModule() {
     }
   };
 
+  // ✅ Apply a suggested new course
+  const handleApplySuggestion = (index: number) => {
+    const newRow = suggestions[index];
+    setCourses((prev) => [...prev, newRow]);
+    setSuggestions((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // ❌ Undo a suggestion (remove it)
+  const handleUndoSuggestion = (index: number) => {
+    const llmStorage = JSON.parse(localStorage.getItem("llm") || "{}");
+    const localCourses = llmStorage.courses_fdp || [];
+    const newSuggestions = [...suggestions];
+    if (localCourses[index]) newSuggestions.push(localCourses[index]);
+    setSuggestions(newSuggestions);
+  };
+
+  // ⚡ Apply all suggestions at once
+  const handleApplyAll = () => {
+    setCourses((prev) => [...prev, ...suggestions]);
+    setSuggestions([]);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen text-lg font-medium">
@@ -111,6 +157,8 @@ export default function CoursesFDPModule() {
       </div>
     );
   }
+
+  const hasSuggestions = suggestions.length > 0;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-background via-muted/20 to-background p-4">
@@ -125,29 +173,36 @@ export default function CoursesFDPModule() {
             </CardTitle>
           </div>
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="default"
-                size="sm"
-                className="flex items-center space-x-1"
-              >
-                <Plus className="h-4 w-4" /> Add New
+          <div className="flex space-x-2">
+            {hasSuggestions && (
+              <Button variant="default" size="sm" onClick={handleApplyAll}>
+                Apply All Suggestions
               </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Add Course / FDP</DialogTitle>
-              </DialogHeader>
-              <CourseForm
-                onSave={(data, close) => handleSave(data, undefined, close)} // no index for new
-              />
-            </DialogContent>
-          </Dialog>
+            )}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="flex items-center space-x-1"
+                >
+                  <Plus className="h-4 w-4" /> Add New
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add Course / FDP</DialogTitle>
+                </DialogHeader>
+                <CourseForm
+                  onSave={(data, close) => handleSave(data, undefined, close)}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
 
         <CardContent>
-          {courses.length === 0 ? (
+          {courses.length === 0 && suggestions.length === 0 ? (
             <p className="text-muted-foreground">No courses added yet.</p>
           ) : (
             <div className="overflow-x-auto">
@@ -163,6 +218,7 @@ export default function CoursesFDPModule() {
                   </tr>
                 </thead>
                 <tbody>
+                  {/* Existing rows */}
                   {courses.map((row, index) => (
                     <tr key={index} className="hover:bg-gray-50">
                       {courseFields.map((f) => (
@@ -185,7 +241,7 @@ export default function CoursesFDPModule() {
                               initialData={row}
                               onSave={(data, close) =>
                                 handleSave(data, index, close)
-                              } // wrap index here
+                              }
                             />
                           </DialogContent>
                         </Dialog>
@@ -195,6 +251,33 @@ export default function CoursesFDPModule() {
                           onClick={() => handleDelete(index)}
                         >
                           <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {/* Suggested new rows */}
+                  {suggestions.map((row, index) => (
+                    <tr key={`suggest-${index}`} className="bg-yellow-50 border-t-2 border-yellow-300">
+                      {courseFields.map((f) => (
+                        <td key={f.id} className="px-4 py-2 border text-yellow-800">
+                          {row[f.id]}
+                        </td>
+                      ))}
+                      <td className="px-4 py-2 border flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() => handleApplySuggestion(index)}
+                        >
+                          Apply
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleUndoSuggestion(index)}
+                        >
+                          Undo
                         </Button>
                       </td>
                     </tr>
@@ -209,7 +292,7 @@ export default function CoursesFDPModule() {
   );
 }
 
-// Reusable form component for modal
+// Reusable Course Form (for Add/Edit)
 function CourseForm({
   initialData = {},
   onSave,
@@ -229,13 +312,13 @@ function CourseForm({
     setForm((prev: any) => ({ ...prev, [id]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent, close: () => void) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(form, close);
+    onSave(form);
   };
 
   return (
-    <form onSubmit={(e) => handleSubmit(e, () => {})} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {courseFields.map((field) => (
         <div key={field.id} className="flex flex-col">
           <label className="text-sm font-medium text-muted-foreground mb-1">

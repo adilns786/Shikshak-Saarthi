@@ -23,7 +23,7 @@ const academicFields = [
   { id: "board_university", label: "Board / University", type: "text", required: true },
   { id: "year_passing", label: "Year of Passing", type: "number", required: true },
   { id: "percentage", label: "Percentage", type: "number", required: true },
-  { id: "class_division", label: "Class / Division", type: "text", required: true },
+  { id: "division", label: "Class / Division", type: "text", required: true },
   { id: "subject", label: "Subject", type: "text", required: true },
 ];
 
