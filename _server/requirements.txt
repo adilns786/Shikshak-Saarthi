@@ -23,3 +23,5 @@ pytest>=7.4.0
 pytest-flask>=1.2.0
 black>=23.7.0
 flake8>=6.1.0
+
+firebasae-admin
