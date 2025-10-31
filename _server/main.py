@@ -1,29 +1,30 @@
 """
-Flask Server for PBAS Form Generation
-Now integrated with Firebase Firestore (Darshan's actual structure)
+Flask Server for PBAS Form Generation (No Firebase Admin)
+Using Firebase Firestore REST API (Read-only)
 """
 
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, jsonify, send_file
+from flask_cors import CORS
 from io import BytesIO
 from datetime import datetime
-import firebase_admin
-from firebase_admin import credentials, firestore
-from pbas_form_generator import PBASFormGenerator  # your docx generator class
+import requests
+from pbas_form_generator import PBASFormGenerator  # your DOCX generator class
 
 # ---------------------------------------------------------------------------
-# Firebase Initialization
-# ---------------------------------------------------------------------------
-cred = credentials.Certificate("firebaseConfig.json")  # Path to your Firebase service account key
-firebase_admin.initialize_app(cred)
-db = firestore.client()
-
-# ---------------------------------------------------------------------------
-# Flask App
+# Flask App Setup
 # ---------------------------------------------------------------------------
 app = Flask(__name__)
+CORS(app)  # allow frontend (Next.js) to call this API
 
 # ---------------------------------------------------------------------------
-# Template Structure
+# Firebase Config (client-side credentials)
+# ---------------------------------------------------------------------------
+PROJECT_ID = "shikshak-sarthi"
+API_KEY = "AIzaSyBdv7Fam8KP8mkyF_UP7RfURM6OwFNd7vQ"
+COLLECTION = "users"
+
+# ---------------------------------------------------------------------------
+# Default PBAS Template Structure
 # ---------------------------------------------------------------------------
 TEMPLATE_DATA = {
     'institute': '',
@@ -64,22 +65,41 @@ TEMPLATE_DATA = {
 }
 
 # ---------------------------------------------------------------------------
-# 🔸 Fetch PBAS data from Firestore (as per actual structure)
+# 🔸 Helper: Parse Firestore REST API response fields
+# ---------------------------------------------------------------------------
+def parse_firestore_fields(fields):
+    parsed = {}
+    for k, v in fields.items():
+        # Firestore stores values in typed keys (e.g. stringValue, integerValue)
+        if isinstance(v, dict):
+            parsed[k] = next(iter(v.values()))
+        else:
+            parsed[k] = v
+    return parsed
+
+
+# ---------------------------------------------------------------------------
+# 🔹 Route 1: Fetch PBAS Data from Firestore (via REST API)
 # ---------------------------------------------------------------------------
 @app.route('/api/fetch/<uid>', methods=['GET'])
 def fetch_from_firestore(uid):
-    """Fetch faculty PBAS data from Firestore and map it to template structure"""
+    """Fetch faculty PBAS data from Firestore using REST API"""
     try:
-        doc_ref = db.collection("users").document(uid)
-        doc = doc_ref.get()
+        url = f"https://firestore.googleapis.com/v1/projects/{PROJECT_ID}/databases/(default)/documents/{COLLECTION}/{uid}?key={API_KEY}"
+        response = requests.get(url)
 
-        if not doc.exists:
-            return jsonify({'error': f'No user found for UID: {uid}'}), 404
+        if response.status_code != 200:
+            return jsonify({'error': 'Firestore fetch failed', 'details': response.text}), response.status_code
 
-        user_data = doc.to_dict()
+        data = response.json()
+        fields = data.get("fields", {})
+        user_data = parse_firestore_fields(fields)
+
         form_header = user_data.get('formHeader', {})
+        if isinstance(form_header, dict):
+            form_header = parse_firestore_fields(form_header)
 
-        # Map Firestore data → PBAS template fields
+        # Merge into PBAS template
         merged_data = {
             **TEMPLATE_DATA,
             'institute': form_header.get('institute_name', ''),
@@ -92,26 +112,33 @@ def fetch_from_firestore(uid):
         }
 
         return jsonify(merged_data)
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
 # ---------------------------------------------------------------------------
-# 🔸 Generate PBAS Form from Firestore Data
+# 🔹 Route 2: Generate PBAS Form DOCX (from Firestore data)
 # ---------------------------------------------------------------------------
 @app.route('/api/generate/firebase/<uid>', methods=['GET'])
 def generate_from_firestore(uid):
-    """Fetch faculty PBAS data from Firestore and generate PBAS DOCX"""
+    """Fetch PBAS data via REST and generate DOCX form"""
     try:
-        doc_ref = db.collection("users").document(uid)
-        doc = doc_ref.get()
+        url = f"https://firestore.googleapis.com/v1/projects/{PROJECT_ID}/databases/(default)/documents/{COLLECTION}/{uid}?key={API_KEY}"
+        response = requests.get(url)
 
-        if not doc.exists:
-            return jsonify({'error': f'No data found for UID: {uid}'}), 404
+        if response.status_code != 200:
+            return jsonify({'error': 'Firestore fetch failed', 'details': response.text}), response.status_code
 
-        user_data = doc.to_dict()
+        data = response.json()
+        fields = data.get("fields", {})
+        user_data = parse_firestore_fields(fields)
+
         form_header = user_data.get('formHeader', {})
+        if isinstance(form_header, dict):
+            form_header = parse_firestore_fields(form_header)
 
+        # Prepare DOCX data
         form_data = {
             **TEMPLATE_DATA,
             'institute': form_header.get('institute_name', ''),
@@ -123,28 +150,29 @@ def generate_from_firestore(uid):
             'email': user_data.get('email', ''),
         }
 
+        # Generate DOCX
         generator = PBASFormGenerator()
         docx = generator.generate(form_data)
 
+        # Save to memory
         file_stream = BytesIO()
         docx.save(file_stream)
         file_stream.seek(0)
 
         filename = f"PBAS_Form_{uid}.docx"
-        file_path = "generated_forms/PBAS_Form.docx"
-
         return send_file(
             file_stream,
             mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             as_attachment=True,
             download_name=filename
         )
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
 # ---------------------------------------------------------------------------
-# Health Check
+# 🔹 Health Check
 # ---------------------------------------------------------------------------
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -157,7 +185,7 @@ def health_check():
 if __name__ == '__main__':
     print("""
     ╔════════════════════════════════════════════════════════════╗
-    ║   PBAS Form Generation Server (VESIT Firestore Integrated) ║
+    ║   PBAS Form Generation Server (Firestore REST Integration)  ║
     ╠════════════════════════════════════════════════════════════╣
     ║  Endpoints:                                                ║
     ║  • GET  /api/fetch/<uid>             → Fetch PBAS Data      ║
