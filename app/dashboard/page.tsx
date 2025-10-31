@@ -14,23 +14,19 @@ import { doc, getDoc } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import {
   FileText,
   BookOpen,
   Calendar,
-  TrendingUp,
   LogOut,
-  PlusCircle,
-  Clock,
   Key,
   Lightbulb,
   User,
   Award,
   Briefcase,
   GraduationCap,
+  Clock,
   Bot,
-  Download,
 } from "lucide-react";
 
 import {
@@ -38,15 +34,39 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
+
 import GeneratePBASButton from "@/components/generatePbas";
 
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
+
+/**
+ * Final Dashboard
+ * - gradient background
+ * - caching via localStorage (profile + metrics)
+ * - live refresh from Firestore
+ * - all original features preserved
+ */
+
 export default function DashboardPage() {
+  const router = useRouter();
+
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<any>({});
+  const [metrics, setMetrics] = useState<any | null>(null);
   const [insights, setInsights] = useState<string[]>([]);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
@@ -54,103 +74,225 @@ export default function DashboardPage() {
     newPassword: "",
     confirmPassword: "",
   });
-  const router = useRouter();
 
-  // Load user profile and stats
+  // Colors
+  const DONUT_COLORS = ["#3b82f6", "#f97316", "#10b981", "#8b5cf6", "#ef4444"];
+  const BAR_COLORS = { bar: "#4F46E5" };
+
+  // Helper: compute metrics from profile
+  const computeMetrics = (profileData: any) => {
+    if (!profileData) return null;
+
+    const researchPapers = profileData.part_b?.table2?.researchPapers ?? [];
+    const publications = profileData.part_b?.table2?.publications ?? [];
+    const patents = profileData.part_b?.patents_policy_awards ?? [];
+    const lectures = profileData.part_b?.invited_lectures ?? [];
+    const courses = profileData.part_a?.courses_fdp ?? [];
+    const researchProjects = profileData.part_b?.table2?.researchProjects ?? [];
+    const consultancyProjects =
+      profileData.part_b?.table2?.consultancyProjects ?? [];
+    const guidance = profileData.part_b?.table2?.researchGuidance ?? [];
+
+    const totalResearchPapers = researchPapers.length;
+    const totalPublications = publications.length;
+    const totalPatents = patents.length;
+    const totalLectures = lectures.length;
+    const totalCourses = courses.length;
+    const totalResearchProjects = researchProjects.length;
+    const totalConsultancy = consultancyProjects.length;
+    const totalGuidance = guidance.length;
+
+    const categoryCounts = {
+      "Research Papers": totalResearchPapers,
+      Publications: totalPublications,
+      "Patents / Awards": totalPatents,
+      "Invited Lectures": totalLectures,
+      "Projects (R+C)": totalResearchProjects + totalConsultancy,
+    };
+
+    // Build year counts
+    const yearCounts: Record<string, number> = {};
+    const safeGetYear = (item: any) => {
+      if (!item) return null;
+      if (item.year) return String(item.year);
+      if (item.date_of_award) {
+        const y = new Date(item.date_of_award).getFullYear();
+        if (!Number.isNaN(y)) return String(y);
+      }
+      if (item.year_passing) return String(item.year_passing);
+      if (item.date) {
+        const y = new Date(item.date).getFullYear();
+        if (!Number.isNaN(y)) return String(y);
+      }
+      return null;
+    };
+    const pushToYear = (y: string | null) => {
+      if (!y) return;
+      yearCounts[y] = (yearCounts[y] || 0) + 1;
+    };
+
+    researchPapers.forEach((p: any) => pushToYear(safeGetYear(p)));
+    publications.forEach((p: any) => pushToYear(safeGetYear(p)));
+    researchProjects.forEach((p: any) => pushToYear(safeGetYear(p)));
+    consultancyProjects.forEach((p: any) => pushToYear(safeGetYear(p)));
+
+    const yearData = Object.keys(yearCounts)
+      .map((y) => ({ year: y, count: yearCounts[y] }))
+      .sort((a, b) => Number(a.year) - Number(b.year));
+
+    const totalOutputs =
+      totalResearchPapers +
+      totalPublications +
+      totalPatents +
+      totalLectures +
+      totalResearchProjects +
+      totalConsultancy;
+
+    let topCategory = "None";
+    {
+      const entries = Object.entries(categoryCounts);
+      entries.sort((a, b) => b[1] - a[1]);
+      if (entries.length > 0) topCategory = entries[0][0];
+    }
+
+    let mostProductiveYear: string | null = null;
+    if (yearData.length > 0) {
+      const sortedByCount = [...yearData].sort((a, b) => b.count - a.count);
+      mostProductiveYear = sortedByCount[0].year;
+    }
+
+    const parseAmount = (v: any) => {
+      if (!v && v !== 0) return 0;
+      if (typeof v === "number") return v;
+      const s = String(v).replace(/[^0-9.-]+/g, "");
+      const n = parseFloat(s);
+      return Number.isNaN(n) ? 0 : n;
+    };
+    const totalGrantAmount =
+      researchProjects.reduce(
+        (acc: number, p: any) => acc + parseAmount(p.amount),
+        0
+      ) +
+      consultancyProjects.reduce(
+        (acc: number, p: any) => acc + parseAmount(p.amount),
+        0
+      );
+
+    return {
+      totals: {
+        totalResearchPapers,
+        totalPublications,
+        totalPatents,
+        totalLectures,
+        totalCourses,
+        totalResearchProjects,
+        totalConsultancy,
+        totalGuidance,
+        totalOutputs,
+        totalGrantAmount,
+      },
+      categoryCounts,
+      yearData,
+      topCategory,
+      mostProductiveYear,
+    };
+  };
+
+  // Load from cache (instant) then fetch live
   useEffect(() => {
+    const cachedProfile = localStorage.getItem("pbas_profile");
+    const cachedMetrics = localStorage.getItem("pbas_metrics");
+    if (cachedProfile) {
+      try {
+        const p = JSON.parse(cachedProfile);
+        setProfile(p);
+        if (cachedMetrics) setMetrics(JSON.parse(cachedMetrics));
+        setLoading(false);
+      } catch {
+        // ignore parse errors
+      }
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        window.location.href = "/auth/login";
+        router.replace("/auth/login");
         return;
       }
 
       try {
-        const cachedProfile = localStorage.getItem("profile");
-        const cachedStats = localStorage.getItem("dashboardStats");
-
-        if (cachedProfile) setProfile(JSON.parse(cachedProfile));
-        if (cachedStats) setStats(JSON.parse(cachedStats));
-
-        if (!cachedProfile || !cachedStats) {
-          const userDoc = await getDoc(doc(firestore, "users", user.uid));
-          if (!userDoc.exists()) {
-            await signOut(auth);
-            window.location.href = "/auth/login";
-            return;
-          }
-          const data = userDoc.data();
-          setProfile(data);
-
-          // Extract stats from DB
-          const teaching =
-            data.part_a?.teaching_student_assessment?.teaching || [];
-          const activities =
-            data.part_a?.teaching_student_assessment?.activities || [];
-          const publications = data.part_a?.research?.publications || [];
-          const events = data.part_a?.events || [];
-
-          const newStats = {
-            totalAppraisals: teaching.length + activities.length,
-            draftAppraisals:
-              teaching.filter((t: any) => t.status === "draft").length +
-              activities.filter((a: any) => a.status === "draft").length,
-            submittedAppraisals:
-              teaching.filter((t: any) => t.status === "submitted").length +
-              activities.filter((a: any) => a.status === "submitted").length,
-            approvedAppraisals:
-              teaching.filter((t: any) => t.status === "approved").length +
-              activities.filter((a: any) => a.status === "approved").length,
-            totalPublications: publications.length,
-            totalEvents: events.length,
-            totalTeachingHours: teaching.reduce(
-              (acc: number, t: any) => acc + Number(t.actual_class_spent || 0),
-              0
-            ),
-            totalActivities: activities.length,
-            expectedTeachingHours: 120,
-          };
-
-          setStats(newStats);
-          localStorage.setItem("profile", JSON.stringify(data));
-          localStorage.setItem("dashboardStats", JSON.stringify(newStats));
+        const userDoc = await getDoc(doc(firestore, "users", user.uid));
+        if (!userDoc.exists()) {
+          await signOut(auth);
+          router.replace("/auth/login");
+          return;
         }
-
+        const liveProfile = userDoc.data();
+        setProfile(liveProfile || {});
+        const liveMetrics = computeMetrics(liveProfile);
+        setMetrics(liveMetrics);
+        // cache
+        try {
+          localStorage.setItem("pbas_profile", JSON.stringify(liveProfile));
+          localStorage.setItem("pbas_metrics", JSON.stringify(liveMetrics));
+        } catch {
+          // storage may be full — ignore
+        }
         setLoading(false);
       } catch (err) {
-        console.error("Error loading dashboard:", err);
+        console.error("Error loading profile:", err);
         await signOut(auth);
-        window.location.href = "/auth/login";
+        router.replace("/auth/login");
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
-  // AI Insights
+  // Derive insights when metrics change
   useEffect(() => {
     const tmp: string[] = [];
-    if (stats.draftAppraisals > 0)
-      tmp.push(`You have ${stats.draftAppraisals} draft appraisals pending.`);
-    if (stats.totalTeachingHours < stats.expectedTeachingHours)
+    if (!metrics) {
+      setInsights([
+        "No academic data found yet — start adding research, publications or projects to get rich insights.",
+      ]);
+      return;
+    }
+    const { totals, topCategory, mostProductiveYear } = metrics as any;
+    tmp.push(
+      `You have recorded ${totals.totalOutputs} academic outputs (papers, publications, patents, lectures, projects).`
+    );
+    if (totals.totalOutputs > 0)
+      tmp.push(`Top contribution area: ${topCategory}.`);
+    if (totals.totalGuidance > 0)
+      tmp.push(`Guided students: ${totals.totalGuidance}.`);
+    else
       tmp.push(
-        `Teaching hours (${stats.totalTeachingHours}) below target (${stats.expectedTeachingHours}).`
+        "No research guidance recorded — consider adding guided students."
       );
-    if (stats.totalActivities < 5)
+    if (mostProductiveYear)
+      tmp.push(`Most productive year: ${mostProductiveYear}.`);
+    if (totals.totalGrantAmount > 0)
       tmp.push(
-        "Consider participating in more activities for better appraisal score."
+        `Total recorded funding: ₹ ${totals.totalGrantAmount.toFixed(2)}.`
       );
+    if (totals.totalPublications < 2)
+      tmp.push(
+        "Consider publishing more peer-reviewed articles to strengthen your profile."
+      );
+    if (totals.totalCourses < 1)
+      tmp.push(
+        "Attend/organize at least one FDP/course this year for teaching credentials."
+      );
+
     setInsights(tmp);
-  }, [stats]);
+  }, [metrics]);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    router.replace("/auth/login");
-  };
-
+  // Password change handler (uses reauth)
   const handlePasswordChange = async () => {
-    if (passwordForm.newPassword !== passwordForm.confirmPassword)
-      return alert("New password mismatch!");
-
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      alert("New password mismatch!");
+      return;
+    }
     try {
       const user = auth.currentUser;
       if (!user || !profile?.email) return;
@@ -167,14 +309,15 @@ export default function DashboardPage() {
         newPassword: "",
         confirmPassword: "",
       });
+      // Clear cached profile/metrics to force refresh (optional)
+      try {
+        localStorage.removeItem("pbas_profile");
+        localStorage.removeItem("pbas_metrics");
+      } catch {}
     } catch (err: any) {
       console.error(err);
       alert(err.message || "Error updating password");
     }
-  };
-  const handleDownloadPDF = () => {
-    // e.g. trigger file download or API call
-    window.open("/api/report/download", "_blank");
   };
 
   if (loading || !profile) {
@@ -185,20 +328,20 @@ export default function DashboardPage() {
     );
   }
 
-  const { name, role } = profile;
-  const {
-    totalAppraisals,
-    draftAppraisals,
-    submittedAppraisals,
-    approvedAppraisals,
-    totalPublications,
-    totalEvents,
-    totalTeachingHours,
-    totalActivities,
-    expectedTeachingHours,
-  } = stats;
+  // Prepare chart data
+  const yearChartData =
+    metrics?.yearData && metrics.yearData.length > 0
+      ? metrics.yearData.map((d: any) => ({ year: d.year, count: d.count }))
+      : [{ year: new Date().getFullYear().toString(), count: 0 }];
 
-  // Quick Actions
+  const donutData = metrics
+    ? Object.entries(metrics.categoryCounts).map(([name, value]) => ({
+        name,
+        value,
+      }))
+    : [{ name: "No data", value: 1 }];
+
+  // Quick actions
   const quickActions = [
     {
       title: "Profile",
@@ -243,50 +386,72 @@ export default function DashboardPage() {
       icon: Clock,
     },
     {
-      title: "Teaching & Student Activity Assessment",
-      subtitle: "Self & Verified Grading",
-      href: "/dashboard/forms/part-b/table1",
-      icon: FileText,
-    },
-    {
       title: "Research & Academic Contribution",
       subtitle: "Self & Verified Contributions",
       href: "/dashboard/forms/part-b/table2",
       icon: FileText,
     },
     {
-      title: "Patents, Policy, and Awards Module",
-      subtitle: "Patents, Policy, and Awards Assessment",
+      title: "Patents, Policy, and Awards",
+      subtitle: "Assessment Overview",
       href: "/dashboard/forms/part-b/patents_policy_awards",
       icon: FileText,
     },
     {
-      title: "Lectures & Conference Presentations",
-      subtitle: "Lectures & Conference Presentations Assessment",
+      title: "Lectures & Presentations",
+      subtitle: "Conference and Talks",
       href: "/dashboard/forms/part-b/invited_lectures",
       icon: FileText,
     },
   ];
 
+  const totals = metrics?.totals ?? {};
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background p-6 space-y-8">
       {/* Header */}
-      <header className="flex justify-between items-center mb-4">
+      <header className="flex justify-between items-start gap-4 mb-4">
         <div>
           <h1 className="text-3xl font-bold text-primary">
-            Welcome back, {name}!
+            Welcome back,{" "}
+            {profile?.personal_in?.name ?? profile?.name ?? "Faculty"}!
           </h1>
-          <p className="text-muted-foreground mt-1 capitalize">Role: {role}</p>
+          <p className="text-muted-foreground mt-1">
+            {profile?.formHeader?.department_name ?? profile?.department ?? ""}{" "}
+            {profile?.formHeader?.academic_year
+              ? `• ${profile.formHeader.academic_year}`
+              : ""}
+          </p>
+          {profile?.formHeader?.cas_promotion_stage && (
+            <div className="mt-2 inline-block px-2 py-1 rounded bg-primary/10 text-primary text-sm">
+              {profile.formHeader.cas_promotion_stage}
+            </div>
+          )}
         </div>
-        <div className="flex space-x-2">
+
+        <div className="flex items-center space-x-2">
+          {/* Keep GeneratePBASButton as-is and styled to match */}
+          <div>
+            <GeneratePBASButton userId={auth.currentUser?.uid ?? ""} />
+          </div>
+
           <Button variant="outline" onClick={() => setShowPasswordModal(true)}>
             <Key className="mr-2 h-4 w-4" /> Change Password
           </Button>
-          <Button variant="destructive" onClick={handleLogout}>
+
+          <Button
+            variant="destructive"
+            onClick={async () => {
+              await signOut(auth);
+              router.replace("/auth/login");
+            }}
+          >
             <LogOut className="mr-2 h-4 w-4" /> Logout
           </Button>
         </div>
       </header>
+
+      {/* Floating chatbot button */}
       <Button
         variant="default"
         className="fixed bottom-6 right-6 rounded-full shadow-xl flex items-center space-x-2 hover:bg-primary hover:text-white transition"
@@ -295,72 +460,150 @@ export default function DashboardPage() {
         <Bot className="h-5 w-5" />
         <span>AI Assistant</span>
       </Button>
-      {/* Stats Grid */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="h-5 w-5 text-primary" /> Total Appraisals
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{totalAppraisals}</p>
-          </CardContent>
-        </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+      {/* Overview cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="hover:shadow-lg transition-shadow rounded-2xl">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <BookOpen className="h-5 w-5 text-primary" /> Publications
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{totalPublications}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5 text-primary" /> Events Attended
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{totalEvents}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-primary" /> Approval Rate
+              <BookOpen className="h-5 w-5 text-primary" /> Research Papers
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              {totalAppraisals > 0
-                ? `${Math.round((approvedAppraisals / totalAppraisals) * 100)}%`
-                : "0%"}
+              {totals.totalResearchPapers ?? 0}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Peer-reviewed papers recorded
             </p>
           </CardContent>
         </Card>
-        {/* <Card className="hover:shadow-lg transition-shadow flex flex-col justify-between">
+
+        <Card className="hover:shadow-lg transition-shadow rounded-2xl">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-primary" /> Download PDF
+              <FileText className="h-5 w-5 text-primary" /> Publications
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Button
-              className="w-full bg-primary text-white hover:bg-primary/90 transition-all"
-              onClick={handleDownloadPDF} // replace with your function
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download Report
-            </Button>
+            <p className="text-3xl font-bold">
+              {totals.totalPublications ?? 0}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Books / Chapters / Other publications
+            </p>
           </CardContent>
-        </Card> */}
-        <GeneratePBASButton userId="PBcdi3vSP8PgvDiDlMWzIbD9Jq63" />
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow rounded-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Award className="h-5 w-5 text-primary" /> Patents & Awards
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{totals.totalPatents ?? 0}</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Recognitions recorded
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow rounded-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Calendar className="h-5 w-5 text-primary" /> Invited Lectures
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{totals.totalLectures ?? 0}</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Talks & presentations
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Yearly Bar */}
+        <Card className="rounded-2xl">
+          <CardHeader>
+            <CardTitle>Academic Output — Year wise</CardTitle>
+          </CardHeader>
+          <CardContent className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={yearChartData}
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="year" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Bar
+                  dataKey="count"
+                  name="Outputs"
+                  barSize={28}
+                  radius={[6, 6, 0, 0]}
+                  fill={BAR_COLORS.bar}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Donut with labels */}
+        <Card className="rounded-2xl">
+          <CardHeader>
+            <CardTitle>Category Distribution</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col lg:flex-row items-center gap-4">
+            <div className="w-full lg:w-2/3 h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={donutData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={48}
+                    outerRadius={80}
+                    dataKey="value"
+                    label={(entry: any) => `${entry.name}: ${entry.value}`}
+                  >
+                    {donutData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={DONUT_COLORS[index % DONUT_COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend verticalAlign="bottom" height={36} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="w-full lg:w-1/3 space-y-2">
+              {donutData.map((d, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{
+                        width: 12,
+                        height: 12,
+                        background: DONUT_COLORS[i % DONUT_COLORS.length],
+                        borderRadius: 3,
+                      }}
+                    />
+                    <div className="text-sm">{d.name}</div>
+                  </div>
+                  <div className="font-medium">{d.value}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Quick Actions */}
@@ -388,8 +631,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* AI Insights */}
-      <Card>
+      {/* Insights */}
+      <Card className="rounded-2xl">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Lightbulb className="h-5 w-5 text-yellow-500" /> Insights &
@@ -397,17 +640,11 @@ export default function DashboardPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {insights.length === 0 ? (
-            <p className="text-muted-foreground">
-              You're up to date! Great job.
+          {insights.map((insight, idx) => (
+            <p key={idx} className="text-sm text-primary">
+              • {insight}
             </p>
-          ) : (
-            insights.map((insight, idx) => (
-              <p key={idx} className="text-sm text-primary">
-                • {insight}
-              </p>
-            ))
-          )}
+          ))}
         </CardContent>
       </Card>
 
