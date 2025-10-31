@@ -2,20 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { firestore } from "@/firebaseConfig";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-} from "firebase/firestore";
+import { auth, firestore } from "@/firebaseConfig";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, Trash2, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function InvitedLectures() {
@@ -32,27 +27,54 @@ export default function InvitedLectures() {
     verification: "",
     remarks: "",
   });
-
+  const [userId, setUserId] = useState<string | null>(null);
   const router = useRouter();
-  const collectionRef = collection(firestore, "part_b_invited_lectures");
 
-  // Fetch from Firestore
-  const fetchEntries = async () => {
-    const snapshot = await getDocs(collectionRef);
-    setEntries(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-  };
-
+  // 🔹 Fetch user & data
   useEffect(() => {
-    fetchEntries();
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        router.replace("/auth/login");
+        return;
+      }
 
-  // Add Record
+      setUserId(user.uid);
+      const userRef = doc(firestore, "users", user.uid);
+      const snap = await getDoc(userRef);
+      if (snap.exists()) {
+        setEntries(snap.data()?.part_b?.invited_lectures || []);
+      } else {
+        setEntries([]);
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
+
+  // 🔹 Add Entry
   const addEntry = async () => {
     if (!newEntry.type || !newEntry.title) {
       alert("Please fill required fields (Type, Title).");
       return;
     }
-    await addDoc(collectionRef, newEntry);
+
+    if (!userId) return;
+    const updated = [...entries, newEntry];
+    setEntries(updated);
+
+    const userRef = doc(firestore, "users", userId);
+    const snap = await getDoc(userRef);
+
+    if (snap.exists()) {
+      await updateDoc(userRef, {
+        "part_b.invited_lectures": updated,
+      });
+    } else {
+      await setDoc(userRef, {
+        part_b: { invited_lectures: updated },
+      });
+    }
+
+    // Reset form
     setNewEntry({
       type: "",
       title: "",
@@ -64,22 +86,27 @@ export default function InvitedLectures() {
       verification: "",
       remarks: "",
     });
-    fetchEntries();
   };
 
-  // Delete Record
-  const deleteEntry = async (id: string) => {
-    await deleteDoc(doc(firestore, "part_b_invited_lectures", id));
-    fetchEntries();
+  // 🔹 Delete Entry
+  const deleteEntry = async (index: number) => {
+    if (!userId) return;
+    const updated = [...entries];
+    updated.splice(index, 1);
+    setEntries(updated);
+
+    const userRef = doc(firestore, "users", userId);
+    await updateDoc(userRef, {
+      "part_b.invited_lectures": updated,
+    });
   };
 
-  // Generate AI Insights (Simple Analytics)
+  // 🔹 Generate AI Insights
   const generateInsights = () => {
     const total = entries.length;
     const invited = entries.filter((e) => e.type === "Invited Lecture").length;
     const resource = entries.filter((e) => e.type === "Resource Person").length;
     const paper = entries.filter((e) => e.type === "Paper Presentation").length;
-
     const international = entries.filter(
       (e) => e.level === "International"
     ).length;
@@ -111,6 +138,7 @@ ${
     setAiInsights(insight.trim());
   };
 
+  // 🔹 UI
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/10 to-background p-6">
       {/* Header */}
@@ -131,7 +159,9 @@ ${
           <Button variant="outline" onClick={generateInsights}>
             <Sparkles className="mr-2 h-4 w-4" /> Generate Insights
           </Button>
-          <Button onClick={addEntry}>Add Record</Button>
+          <Button onClick={addEntry}>
+            <Plus className="mr-2 h-4 w-4" /> Add Record
+          </Button>
         </div>
       </div>
 
@@ -226,7 +256,7 @@ ${
       <div className="grid md:grid-cols-2 gap-4">
         {entries.map((entry, i) => (
           <motion.div
-            key={entry.id}
+            key={i}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
@@ -237,9 +267,9 @@ ${
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() => deleteEntry(entry.id)}
+                  onClick={() => deleteEntry(i)}
                 >
-                  Delete
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground space-y-1">
