@@ -12,10 +12,10 @@ import { ArrowLeft } from "lucide-react";
 
 // Fields for Teaching & Research Experience
 const experienceFields = [
-  { id: "pg_years", label: "P.G. Classes (Years)", type: "number", required: true },
-  { id: "ug_years", label: "U.G. Classes (Years)", type: "number", required: true },
-  { id: "research_years", label: "Research Experience (Years)", type: "number", required: true },
-  { id: "specialization", label: "Field of Specialization", type: "text", required: true },
+  { id: "pg_classes", label: "P.G. Classes (Years)", type: "number", required: true },
+  { id: "ug_classes", label: "U.G. Classes (Years)", type: "number", required: true },
+  { id: "research_experience", label: "Research Experience (Years)", type: "number", required: true },
+  { id: "specialization_fields", label: "Field of Specialization", type: "text", required: true },
 ];
 
 export default function TeachingResearchExperience() {
