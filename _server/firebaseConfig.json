@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "shikshak-sarthi",
+  "private_key_id": "4b09ac0f3aa8667bffc987ed7adf0657743c32aa",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC0j5XpdgqMQJLy\nH3s1YMIX41aeWs/P0hT+mCt3IV0S3ORNSVGiyhBpHeiXvf+Zcu0tFxC7czngHT5+\nZE/ZFaKGwlQ+7BO0zBwSF73UPt6nnflr3pSa5NJjsQz4K0sLPFHJl4MoLigckeTF\nCYlMelIQ1VjSbYeuHI9HGHxUXDORGGXNEogwujYzhIjgoMOXkUW2Zdwdk4foBK8o\n4yCyFnpSqQSU5FJG0pdVLsGG/jy8Rc7sG906mXRQlnN5zQ4kZ8p7SHhcwq0KV3Gh\neP+GFdv4v3U7tD5aL6BWhwvQOFAT8ROzVcDXDVh/B+TGmg6fRZyesLGAVYtWCe0+\nWr2HF8eXAgMBAAECggEALasjf6kbgd3TTOopf5a5gNE/V04gwa+hH8PdOoR1xg+Y\nrvOcclApVmz6J2cm/ujSlFUBJmg+ezDqXY2BpKaUNQFxzXhog5Ich3b5zHUaW8rZ\nCy+A5qx5ij19ykco8+6NwS9RPRhvjMpZ0nxW/cDygM91Z8PMTX1rv8+xoqSvZkMY\ncve2yTvFEvAgSHWPJgjP6sC95gGeITrE1C8nqALM+2l5im76tDsBnwBr8GWUBK/2\nfUT+XThrOXDikPBJYoZKM6mE18GOLcUU0mH2RgO58q0ecMlGYRTbJytRQl3S0aAs\ni8U2erQJOGJ6OlUlltOvNKJ3JCTQFv758nvNjL8eAQKBgQDm9vcYIVASMt0XReH+\nHNiaKt9W4H+vWnCoHYnDv/N8OYzFCL0GGPnLaclMnRr5wcTCHimq3G/BxBSDw1sm\njsOTL66Ii2KQTHgS9HuJ7c92oEtQoK3uVTpiaZk4khsNj7I9etiVSa6iX88sA6Q5\ndwMPWgQnB31JcOkGLRRqSPOBqwKBgQDIIfc1up5ORv+cOI35cHeW+vWVcXiZvp1S\n6+fCZSAygwSyY/20aFKHUSv1pG2SYzb+RKA5vyuLOwXzo1+04n70LSZoYpLskRio\ncdPP6Wr3x4qcuwdv+6Q/9raXO2kKbrN/jLltxwerjT/Y7zOcI2v44JIqflfx5eJe\n4/dAVK39xQKBgD+yOG8FMOnz8RlsAmlsVygdTr7M5ynbDVqv2sCLfYDy9imYwVif\nJrS8lfF1Gm1qzPKkEuW2KXQMuYOlKsw1byZ2bfHmTuZw0GSZ3EArv519k4fG6HDk\nPFfLu5/oW2GgEY33BSgWy/yn46DF2FKoycVAFAkXfav1Ya58XDb7q3xFAoGAFHXE\nfC2z+XSwtRvjB9lDoJ/Pc5PCLJWcJ9oOO4VzITbbyBEI4uS3azYVNGu29/xEpwIF\nD2JH5VgHZ70QD8IIEJZ9ErbhJmY/Cxl3+g127hXsSdGlFQG47QEf8Z4VQwfGOgf8\n/QgX9KXgHSF3OUM1yp/K0aVRAF3sIp9Tq7P8hbECgYEAgGYoy/EzjCYJ21IHesq7\nqp1CIVNyt8LoCvKinIsPa9F1S+wzY0EBz7wi2mz6QfCZOqCc94L12iPscFPguDFS\nzNVuQ8VCjvLmA5cn2wU5Y3NDnonwuxh7bkmASfQ6a4UoOkGkXrQoTzwfVvP+a8MZ\nmL+lKvAbF52BvhEHNIo8ELk=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@shikshak-sarthi.iam.gserviceaccount.com",
+  "client_id": "115004932800967946743",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40shikshak-sarthi.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
