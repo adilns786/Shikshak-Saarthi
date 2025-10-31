@@ -8,7 +8,7 @@ import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Trash2, Plus } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, Check, Undo2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,64 +18,66 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 
-// Field definitions for each subsection
+// ─── Field Definitions ──────────────────────────────
 const priorFields = [
   { id: "designation", label: "Designation", type: "text", required: true },
   { id: "employer", label: "Employer", type: "text", required: true },
-  {
-    id: "nature",
-    label: "Nature of Appointment",
-    type: "text",
-    required: true,
-  },
+  { id: "nature", label: "Nature of Appointment", type: "text", required: true },
   { id: "duration", label: "Duration", type: "text", required: true },
   { id: "salary", label: "Salary", type: "text", required: true },
-  {
-    id: "reason_leaving",
-    label: "Reason for Leaving",
-    type: "text",
-    required: true,
-  },
+  { id: "reason_leaving", label: "Reason for Leaving", type: "text", required: true },
 ];
 
 const postFields = [
   { id: "designation", label: "Designation", type: "text", required: true },
   { id: "department", label: "Department", type: "text", required: true },
-  {
-    id: "date_joining",
-    label: "Date of Joining",
-    type: "date",
-    required: true,
-  },
+  { id: "date_joining", label: "Date of Joining", type: "date", required: true },
   { id: "grade_pay", label: "Grade Pay From–To", type: "text", required: true },
 ];
 
+// ─── Component ──────────────────────────────────────
 export default function EmploymentHistoryModule() {
   const [priorAppointments, setPriorAppointments] = useState<any[]>([]);
   const [postsHeld, setPostsHeld] = useState<any[]>([]);
+  const [suggestedPrior, setSuggestedPrior] = useState<any[]>([]);
+  const [suggestedPosts, setSuggestedPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
 
+  // 🧠 Fetch Firestore & localStorage data
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         router.replace("/auth/login");
         return;
       }
-      setUserId(user.uid);
 
+      setUserId(user.uid);
       try {
         const docRef = doc(firestore, "users", user.uid);
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setPriorAppointments(data?.part_a?.employment?.prior || []);
-          setPostsHeld(data?.part_a?.employment?.posts || []);
-        } else {
-          setPriorAppointments([]);
-          setPostsHeld([]);
-        }
+
+        const firestorePrior = docSnap.exists() ? docSnap.data()?.part_a?.employment?.prior || [] : [];
+        const firestorePosts = docSnap.exists() ? docSnap.data()?.part_a?.employment?.posts || [] : [];
+
+        const llmStorage = JSON.parse(localStorage.getItem("llm") || "{}");
+
+        const localPrior = llmStorage["priorAppointments"] || [];
+        const localPosts = llmStorage["postsHeld"] || [];
+
+        // Identify suggested rows (not exact match with Firestore)
+        const newPriorSuggestions = localPrior.filter(
+          (row: any) => !firestorePrior.some((r: any) => JSON.stringify(r) === JSON.stringify(row))
+        );
+        const newPostSuggestions = localPosts.filter(
+          (row: any) => !firestorePosts.some((r: any) => JSON.stringify(r) === JSON.stringify(row))
+        );
+
+        setPriorAppointments(firestorePrior);
+        setPostsHeld(firestorePosts);
+        setSuggestedPrior(newPriorSuggestions);
+        setSuggestedPosts(newPostSuggestions);
       } catch (err) {
         console.error("Error fetching employment history:", err);
       } finally {
@@ -86,6 +88,7 @@ export default function EmploymentHistoryModule() {
     return () => unsubscribe();
   }, [router]);
 
+  // 💾 Save handler (used for add/edit)
   const handleSave = async (
     row: any,
     section: "prior" | "posts",
@@ -105,19 +108,25 @@ export default function EmploymentHistoryModule() {
       setPostsHeld(updated);
     }
 
-    if (closeModal) closeModal(); // auto close modal
+    if (closeModal) closeModal();
+    await saveToFirestore(section, updated);
+  };
 
+  // 🔁 Local + Firestore update
+  const saveToFirestore = async (section: "prior" | "posts", updated: any[]) => {
     if (!userId) return;
     const userRef = doc(firestore, "users", userId);
     try {
-      await updateDoc(userRef, {
-        [`part_a.employment.${section}`]: updated,
-      });
+      const key = section === "prior" ? "priorAppointments" : "postsHeld";
+      const llmStorage = JSON.parse(localStorage.getItem("llm") || "{}");
+      localStorage.setItem("llm", JSON.stringify({ ...llmStorage, [key]: updated }));
+      await updateDoc(userRef, { [`part_a.employment.${section}`]: updated });
     } catch (err) {
       console.error("Error saving employment history:", err);
     }
   };
 
+  // 🗑 Delete record
   const handleDelete = async (section: "prior" | "posts", index: number) => {
     let updated: any[];
     if (section === "prior") {
@@ -129,31 +138,46 @@ export default function EmploymentHistoryModule() {
       updated.splice(index, 1);
       setPostsHeld(updated);
     }
+    await saveToFirestore(section, updated);
+  };
 
-    if (!userId) return;
-    const userRef = doc(firestore, "users", userId);
-    try {
-      await updateDoc(userRef, {
-        [`part_a.employment.${section}`]: updated,
-      });
-    } catch (err) {
-      console.error("Error deleting employment record:", err);
+  // ✅ Apply suggestion (adds new row)
+  const handleApplySuggestion = (row: any, section: "prior" | "posts", index: number) => {
+    if (section === "prior") {
+      const updated = [...priorAppointments, row];
+      setPriorAppointments(updated);
+      const remaining = suggestedPrior.filter((_, i) => i !== index);
+      setSuggestedPrior(remaining);
+      saveToFirestore("prior", updated);
+    } else {
+      const updated = [...postsHeld, row];
+      setPostsHeld(updated);
+      const remaining = suggestedPosts.filter((_, i) => i !== index);
+      setSuggestedPosts(remaining);
+      saveToFirestore("posts", updated);
     }
   };
 
-  if (loading) {
+  // ↩️ Undo suggestion (restore from localStorage)
+  const handleUndoSuggestion = (section: "prior" | "posts", index: number) => {
+    if (section === "prior") {
+      const llmStorage = JSON.parse(localStorage.getItem("llm") || "{}");
+      setSuggestedPrior(llmStorage["priorAppointments"] || []);
+    } else {
+      const llmStorage = JSON.parse(localStorage.getItem("llm") || "{}");
+      setSuggestedPosts(llmStorage["postsHeld"] || []);
+    }
+  };
+
+  if (loading)
     return (
       <div className="flex items-center justify-center h-screen text-lg font-medium">
         Loading...
       </div>
     );
-  }
 
-  const renderTable = (
-    data: any[],
-    fields: any[],
-    section: "prior" | "posts"
-  ) => (
+  // 🧱 Table Renderer
+  const renderTable = (data: any[], fields: any[], section: "prior" | "posts") => (
     <div className="overflow-x-auto">
       <table className="min-w-full table-auto border border-gray-200 rounded-md mb-4">
         <thead>
@@ -209,6 +233,55 @@ export default function EmploymentHistoryModule() {
     </div>
   );
 
+  // 🧩 Suggested rows display
+  const renderSuggestions = (suggestions: any[], fields: any[], section: "prior" | "posts") =>
+    suggestions.length > 0 && (
+      <div className="mt-3 border border-yellow-300 rounded-lg bg-yellow-50 p-3">
+        <h4 className="font-semibold text-yellow-700 mb-2">
+          Suggested New {section === "prior" ? "Prior Appointments" : "Posts"} (from previous data)
+        </h4>
+        <table className="min-w-full table-auto border border-yellow-200">
+          <thead>
+            <tr className="bg-yellow-100">
+              {fields.map((f) => (
+                <th key={f.id} className="px-3 py-1 border text-sm">
+                  {f.label}
+                </th>
+              ))}
+              <th className="px-3 py-1 border text-sm">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {suggestions.map((row, index) => (
+              <tr key={index} className="bg-yellow-50">
+                {fields.map((f) => (
+                  <td key={f.id} className="px-3 py-1 border text-sm">
+                    {row[f.id]}
+                  </td>
+                ))}
+                <td className="px-3 py-1 border flex space-x-2">
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={() => handleApplySuggestion(row, section, index)}
+                  >
+                    <Check className="h-4 w-4 mr-1" /> Apply
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleUndoSuggestion(section, index)}
+                  >
+                    <Undo2 className="h-4 w-4 mr-1" /> Undo
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-background via-muted/20 to-background p-4 space-y-6">
       <Card className="w-full max-w-5xl shadow-xl rounded-2xl">
@@ -224,7 +297,7 @@ export default function EmploymentHistoryModule() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Prior Appointments */}
+          {/* ─── Prior Appointments ─── */}
           <div>
             <div className="flex justify-between mb-2">
               <h3 className="text-lg font-semibold">
@@ -232,11 +305,7 @@ export default function EmploymentHistoryModule() {
               </h3>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="flex items-center space-x-1"
-                  >
+                  <Button variant="default" size="sm" className="flex items-center space-x-1">
                     <Plus className="h-4 w-4" /> Add New
                   </Button>
                 </DialogTrigger>
@@ -254,9 +323,10 @@ export default function EmploymentHistoryModule() {
               </Dialog>
             </div>
             {renderTable(priorAppointments, priorFields, "prior")}
+            {renderSuggestions(suggestedPrior, priorFields, "prior")}
           </div>
 
-          {/* Posts Held After Joining */}
+          {/* ─── Posts Held ─── */}
           <div>
             <div className="flex justify-between mb-2">
               <h3 className="text-lg font-semibold">
@@ -264,11 +334,7 @@ export default function EmploymentHistoryModule() {
               </h3>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="flex items-center space-x-1"
-                  >
+                  <Button variant="default" size="sm" className="flex items-center space-x-1">
                     <Plus className="h-4 w-4" /> Add New
                   </Button>
                 </DialogTrigger>
@@ -286,6 +352,7 @@ export default function EmploymentHistoryModule() {
               </Dialog>
             </div>
             {renderTable(postsHeld, postFields, "posts")}
+            {renderSuggestions(suggestedPosts, postFields, "posts")}
           </div>
         </CardContent>
       </Card>
@@ -293,7 +360,7 @@ export default function EmploymentHistoryModule() {
   );
 }
 
-// Reusable form for modal
+// ─── Reusable Form ───────────────────────────────
 function EmploymentForm({
   initialData = {},
   fields,
