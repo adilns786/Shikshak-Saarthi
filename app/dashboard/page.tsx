@@ -29,7 +29,8 @@ import {
   Award,
   Briefcase,
   GraduationCap,
-  Bot
+  Bot,
+  Download,
 } from "lucide-react";
 
 import {
@@ -40,6 +41,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
+import GeneratePBASButton from "@/components/generatePbas";
 
 export default function DashboardPage() {
   const [profile, setProfile] = useState<any>(null);
@@ -170,6 +172,10 @@ export default function DashboardPage() {
       alert(err.message || "Error updating password");
     }
   };
+  const handleDownloadPDF = () => {
+    // e.g. trigger file download or API call
+    window.open("/api/report/download", "_blank");
+  };
 
   if (loading || !profile) {
     return (
@@ -290,7 +296,7 @@ export default function DashboardPage() {
         <span>AI Assistant</span>
       </Button>
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -301,6 +307,7 @@ export default function DashboardPage() {
             <p className="text-3xl font-bold">{totalAppraisals}</p>
           </CardContent>
         </Card>
+
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -311,6 +318,7 @@ export default function DashboardPage() {
             <p className="text-3xl font-bold">{totalPublications}</p>
           </CardContent>
         </Card>
+
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -321,6 +329,7 @@ export default function DashboardPage() {
             <p className="text-3xl font-bold">{totalEvents}</p>
           </CardContent>
         </Card>
+
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -335,6 +344,23 @@ export default function DashboardPage() {
             </p>
           </CardContent>
         </Card>
+        {/* <Card className="hover:shadow-lg transition-shadow flex flex-col justify-between">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <TrendingUp className="h-5 w-5 text-primary" /> Download PDF
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button
+              className="w-full bg-primary text-white hover:bg-primary/90 transition-all"
+              onClick={handleDownloadPDF} // replace with your function
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download Report
+            </Button>
+          </CardContent>
+        </Card> */}
+        <GeneratePBASButton userId="PBcdi3vSP8PgvDiDlMWzIbD9Jq63" />
       </div>
 
       {/* Quick Actions */}
