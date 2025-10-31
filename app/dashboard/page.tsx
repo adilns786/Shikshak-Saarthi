@@ -53,14 +53,6 @@ import {
   Legend,
 } from "recharts";
 
-/**
- * Final Dashboard
- * - gradient background
- * - caching via localStorage (profile + metrics)
- * - live refresh from Firestore
- * - all original features preserved
- */
-
 export default function DashboardPage() {
   const router = useRouter();
 
@@ -75,11 +67,10 @@ export default function DashboardPage() {
     confirmPassword: "",
   });
 
-  // Colors
-  const DONUT_COLORS = ["#3b82f6", "#f97316", "#10b981", "#8b5cf6", "#ef4444"];
-  const BAR_COLORS = { bar: "#4F46E5" };
+  // Enhanced color palette
+  const DONUT_COLORS = ["#6366f1", "#f59e0b", "#10b981", "#8b5cf6", "#ef4444"];
+  const BAR_COLOR = "#6366f1";
 
-  // Helper: compute metrics from profile
   const computeMetrics = (profileData: any) => {
     if (!profileData) return null;
 
@@ -105,12 +96,11 @@ export default function DashboardPage() {
     const categoryCounts = {
       "Research Papers": totalResearchPapers,
       Publications: totalPublications,
-      "Patents / Awards": totalPatents,
+      "Patents & Awards": totalPatents,
       "Invited Lectures": totalLectures,
-      "Projects (R+C)": totalResearchProjects + totalConsultancy,
+      Projects: totalResearchProjects + totalConsultancy,
     };
 
-    // Build year counts
     const yearCounts: Record<string, number> = {};
     const safeGetYear = (item: any) => {
       if (!item) return null;
@@ -198,7 +188,6 @@ export default function DashboardPage() {
     };
   };
 
-  // Load from cache (instant) then fetch live
   useEffect(() => {
     const cachedProfile = localStorage.getItem("pbas_profile");
     const cachedMetrics = localStorage.getItem("pbas_metrics");
@@ -208,9 +197,7 @@ export default function DashboardPage() {
         setProfile(p);
         if (cachedMetrics) setMetrics(JSON.parse(cachedMetrics));
         setLoading(false);
-      } catch {
-        // ignore parse errors
-      }
+      } catch {}
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -230,13 +217,10 @@ export default function DashboardPage() {
         setProfile(liveProfile || {});
         const liveMetrics = computeMetrics(liveProfile);
         setMetrics(liveMetrics);
-        // cache
         try {
           localStorage.setItem("pbas_profile", JSON.stringify(liveProfile));
           localStorage.setItem("pbas_metrics", JSON.stringify(liveMetrics));
-        } catch {
-          // storage may be full — ignore
-        }
+        } catch {}
         setLoading(false);
       } catch (err) {
         console.error("Error loading profile:", err);
@@ -248,7 +232,6 @@ export default function DashboardPage() {
     return () => unsubscribe();
   }, [router]);
 
-  // Derive insights when metrics change
   useEffect(() => {
     const tmp: string[] = [];
     if (!metrics) {
@@ -287,7 +270,6 @@ export default function DashboardPage() {
     setInsights(tmp);
   }, [metrics]);
 
-  // Password change handler (uses reauth)
   const handlePasswordChange = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       alert("New password mismatch!");
@@ -309,7 +291,6 @@ export default function DashboardPage() {
         newPassword: "",
         confirmPassword: "",
       });
-      // Clear cached profile/metrics to force refresh (optional)
       try {
         localStorage.removeItem("pbas_profile");
         localStorage.removeItem("pbas_metrics");
@@ -322,26 +303,28 @@ export default function DashboardPage() {
 
   if (loading || !profile) {
     return (
-      <div className="flex items-center justify-center h-screen text-lg font-medium">
-        Loading Dashboard...
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg font-medium text-slate-700">
+            Loading Dashboard...
+          </p>
+        </div>
       </div>
     );
   }
 
-  // Prepare chart data
   const yearChartData =
     metrics?.yearData && metrics.yearData.length > 0
       ? metrics.yearData.map((d: any) => ({ year: d.year, count: d.count }))
       : [{ year: new Date().getFullYear().toString(), count: 0 }];
 
   const donutData = metrics
-    ? Object.entries(metrics.categoryCounts).map(([name, value]) => ({
-        name,
-        value,
-      }))
-    : [{ name: "No data", value: 1 }];
+    ? Object.entries(metrics.categoryCounts)
+        .filter(([_, value]) => value > 0)
+        .map(([name, value]) => ({ name, value }))
+    : [];
 
-  // Quick actions
   const quickActions = [
     {
       title: "Profile",
@@ -386,271 +369,332 @@ export default function DashboardPage() {
       icon: Clock,
     },
     {
-      title: "Research & Academic Contribution",
+      title: "Research & Academic",
       subtitle: "Self & Verified Contributions",
       href: "/dashboard/forms/part-b/table2",
       icon: FileText,
     },
     {
-      title: "Patents, Policy, and Awards",
+      title: "Patents & Awards",
       subtitle: "Assessment Overview",
       href: "/dashboard/forms/part-b/patents_policy_awards",
-      icon: FileText,
+      icon: Award,
     },
     {
-      title: "Lectures & Presentations",
-      subtitle: "Conference and Talks",
+      title: "Lectures & Talks",
+      subtitle: "Conference and Presentations",
       href: "/dashboard/forms/part-b/invited_lectures",
-      icon: FileText,
+      icon: Calendar,
     },
   ];
 
   const totals = metrics?.totals ?? {};
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background p-6 space-y-8">
-      {/* Header */}
-      <header className="flex justify-between items-start gap-4 mb-4">
-        <div>
-          <h1 className="text-3xl font-bold text-primary">
-            Welcome back,{" "}
-            {profile?.personal_in?.name ?? profile?.name ?? "Faculty"}!
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {profile?.formHeader?.department_name ?? profile?.department ?? ""}{" "}
-            {profile?.formHeader?.academic_year
-              ? `• ${profile.formHeader.academic_year}`
-              : ""}
-          </p>
-          {profile?.formHeader?.cas_promotion_stage && (
-            <div className="mt-2 inline-block px-2 py-1 rounded bg-primary/10 text-primary text-sm">
-              {profile.formHeader.cas_promotion_stage}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-50">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Header */}
+        <header className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">
+                Welcome back,{" "}
+                {profile?.personal_in?.name ?? profile?.name ?? "Faculty"}!
+              </h1>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <p className="text-slate-600">
+                  {profile?.formHeader?.department_name ??
+                    profile?.department ??
+                    ""}
+                </p>
+                {profile?.formHeader?.academic_year && (
+                  <>
+                    <span className="text-slate-400">•</span>
+                    <p className="text-slate-600">
+                      {profile.formHeader.academic_year}
+                    </p>
+                  </>
+                )}
+              </div>
+              {profile?.formHeader?.cas_promotion_stage && (
+                <div className="mt-3 inline-block px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 text-sm font-medium">
+                  {profile.formHeader.cas_promotion_stage}
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        <div className="flex items-center space-x-2">
-          {/* Keep GeneratePBASButton as-is and styled to match */}
-          <div>
-            <GeneratePBASButton userId={auth.currentUser?.uid ?? ""} />
-          </div>
-
-          <Button variant="outline" onClick={() => setShowPasswordModal(true)}>
-            <Key className="mr-2 h-4 w-4" /> Change Password
-          </Button>
-
-          <Button
-            variant="destructive"
-            onClick={async () => {
-              await signOut(auth);
-              router.replace("/auth/login");
-            }}
-          >
-            <LogOut className="mr-2 h-4 w-4" /> Logout
-          </Button>
-        </div>
-      </header>
-
-      {/* Floating chatbot button */}
-      <Button
-        variant="default"
-        className="fixed bottom-6 right-6 rounded-full shadow-xl flex items-center space-x-2 hover:bg-primary hover:text-white transition"
-        onClick={() => router.push("/chatbot")}
-      >
-        <Bot className="h-5 w-5" />
-        <span>AI Assistant</span>
-      </Button>
-
-      {/* Overview cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="hover:shadow-lg transition-shadow rounded-2xl">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <BookOpen className="h-5 w-5 text-primary" /> Research Papers
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {totals.totalResearchPapers ?? 0}
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Peer-reviewed papers recorded
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow rounded-2xl">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="h-5 w-5 text-primary" /> Publications
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {totals.totalPublications ?? 0}
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Books / Chapters / Other publications
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow rounded-2xl">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Award className="h-5 w-5 text-primary" /> Patents & Awards
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{totals.totalPatents ?? 0}</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Recognitions recorded
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow rounded-2xl">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5 text-primary" /> Invited Lectures
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{totals.totalLectures ?? 0}</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Talks & presentations
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Yearly Bar */}
-        <Card className="rounded-2xl">
-          <CardHeader>
-            <CardTitle>Academic Output — Year wise</CardTitle>
-          </CardHeader>
-          <CardContent className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={yearChartData}
-                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            <div className="flex flex-wrap items-center gap-3">
+              <GeneratePBASButton userId={auth.currentUser?.uid ?? ""} />
+              <Button
+                variant="outline"
+                onClick={() => setShowPasswordModal(true)}
+                className="shadow-sm"
               >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="year" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Bar
-                  dataKey="count"
-                  name="Outputs"
-                  barSize={28}
-                  radius={[6, 6, 0, 0]}
-                  fill={BAR_COLORS.bar}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Donut with labels */}
-        <Card className="rounded-2xl">
-          <CardHeader>
-            <CardTitle>Category Distribution</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col lg:flex-row items-center gap-4">
-            <div className="w-full lg:w-2/3 h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={donutData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={48}
-                    outerRadius={80}
-                    dataKey="value"
-                    label={(entry: any) => `${entry.name}: ${entry.value}`}
-                  >
-                    {donutData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={DONUT_COLORS[index % DONUT_COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend verticalAlign="bottom" height={36} />
-                </PieChart>
-              </ResponsiveContainer>
+                <Key className="mr-2 h-4 w-4" /> Change Password
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  await signOut(auth);
+                  router.replace("/auth/login");
+                }}
+                className="shadow-sm"
+              >
+                <LogOut className="mr-2 h-4 w-4" /> Logout
+              </Button>
             </div>
+          </div>
+        </header>
 
-            <div className="w-full lg:w-1/3 space-y-2">
-              {donutData.map((d, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div
-                      style={{
-                        width: 12,
-                        height: 12,
-                        background: DONUT_COLORS[i % DONUT_COLORS.length],
-                        borderRadius: 3,
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold text-slate-700">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <BookOpen className="h-5 w-5 text-blue-600" />
+                </div>
+                Research Papers
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-slate-900">
+                {totals.totalResearchPapers ?? 0}
+              </p>
+              <p className="text-sm text-slate-500 mt-1">
+                Peer-reviewed papers
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold text-slate-700">
+                <div className="p-2 bg-amber-100 rounded-lg">
+                  <FileText className="h-5 w-5 text-amber-600" />
+                </div>
+                Publications
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-slate-900">
+                {totals.totalPublications ?? 0}
+              </p>
+              <p className="text-sm text-slate-500 mt-1">Books & chapters</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold text-slate-700">
+                <div className="p-2 bg-emerald-100 rounded-lg">
+                  <Award className="h-5 w-5 text-emerald-600" />
+                </div>
+                Patents & Awards
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-slate-900">
+                {totals.totalPatents ?? 0}
+              </p>
+              <p className="text-sm text-slate-500 mt-1">Recognitions</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold text-slate-700">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Calendar className="h-5 w-5 text-purple-600" />
+                </div>
+                Invited Lectures
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-slate-900">
+                {totals.totalLectures ?? 0}
+              </p>
+              <p className="text-sm text-slate-500 mt-1">
+                Talks & presentations
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Bar Chart */}
+          <Card className="border-slate-200 shadow-sm bg-white">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-semibold text-slate-900">
+                Academic Output Timeline
+              </CardTitle>
+              <p className="text-sm text-slate-500 mt-1">
+                Year-wise contribution breakdown
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={yearChartData}
+                    margin={{ top: 20, right: 20, left: -10, bottom: 20 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis
+                      dataKey="year"
+                      tick={{ fill: "#64748b", fontSize: 12 }}
+                      axisLine={{ stroke: "#cbd5e1" }}
+                    />
+                    <YAxis
+                      allowDecimals={false}
+                      tick={{ fill: "#64748b", fontSize: 12 }}
+                      axisLine={{ stroke: "#cbd5e1" }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "white",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                       }}
                     />
-                    <div className="text-sm">{d.name}</div>
-                  </div>
-                  <div className="font-medium">{d.value}</div>
+                    <Bar
+                      dataKey="count"
+                      name="Outputs"
+                      fill={BAR_COLOR}
+                      radius={[8, 8, 0, 0]}
+                      maxBarSize={50}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pie Chart */}
+          <Card className="border-slate-200 shadow-sm bg-white">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-semibold text-slate-900">
+                Category Distribution
+              </CardTitle>
+              <p className="text-sm text-slate-500 mt-1">
+                Contribution by category
+              </p>
+            </CardHeader>
+            <CardContent>
+              {donutData.length > 0 ? (
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={donutData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        dataKey="value"
+                        paddingAngle={2}
+                      >
+                        {donutData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={DONUT_COLORS[index % DONUT_COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "white",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                        }}
+                      />
+                      <Legend
+                        verticalAlign="bottom"
+                        height={50}
+                        iconType="circle"
+                        wrapperStyle={{ fontSize: "13px", paddingTop: "20px" }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-72 flex items-center justify-center text-slate-400">
+                  <p>No data available yet</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Insights */}
+        <Card className="border-slate-200 shadow-sm bg-gradient-to-br from-amber-50 to-white">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+              <Lightbulb className="h-5 w-5 text-amber-500" />
+              Insights & Suggestions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {insights.map((insight, idx) => (
+                <div key={idx} className="flex items-start gap-2">
+                  <span className="text-amber-500 mt-1">•</span>
+                  <p className="text-sm text-slate-700 leading-relaxed">
+                    {insight}
+                  </p>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-xl font-semibold mb-2">Quick Actions</h2>
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {quickActions.map((action, idx) => {
-            const Icon = action.icon;
-            return (
-              <a
-                key={idx}
-                href={action.href}
-                className="block p-4 border rounded-lg bg-white hover:bg-primary/5 transition-colors shadow hover:shadow-lg"
-              >
-                <div className="flex items-center space-x-3 mb-2">
-                  <Icon className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">{action.title}</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {action.subtitle}
-                </p>
-              </a>
-            );
-          })}
+        {/* Quick Actions */}
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900 mb-4">
+            Quick Actions
+          </h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {quickActions.map((action, idx) => {
+              const Icon = action.icon;
+              return (
+                <a
+                  key={idx}
+                  href={action.href}
+                  className="group block p-4 border border-slate-200 rounded-xl bg-white hover:bg-indigo-50 hover:border-indigo-200 transition-all shadow-sm hover:shadow-md"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
+                      <Icon className="h-4 w-4 text-indigo-600" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-slate-900 group-hover:text-indigo-900">
+                      {action.title}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-500 pl-11">
+                    {action.subtitle}
+                  </p>
+                </a>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Insights */}
-      <Card className="rounded-2xl">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Lightbulb className="h-5 w-5 text-yellow-500" /> Insights &
-            Suggestions
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {insights.map((insight, idx) => (
-            <p key={idx} className="text-sm text-primary">
-              • {insight}
-            </p>
-          ))}
-        </CardContent>
-      </Card>
+      {/* Floating AI Button */}
+      <Button
+        className="fixed bottom-6 right-6 rounded-full shadow-xl h-14 px-6 bg-indigo-600 hover:bg-indigo-700 text-white"
+        onClick={() => router.push("/chatbot")}
+      >
+        <Bot className="h-5 w-5 mr-2" />
+        <span className="font-medium">AI Assistant</span>
+      </Button>
 
-      {/* Change Password Modal */}
+      {/* Password Modal */}
       <Dialog open={showPasswordModal} onOpenChange={setShowPasswordModal}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Change Password</DialogTitle>
           </DialogHeader>
@@ -661,12 +705,14 @@ export default function DashboardPage() {
               handlePasswordChange();
             }}
           >
-            <div className="flex flex-col">
-              <label>Old Password</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Old Password
+              </label>
               <input
                 type="password"
                 required
-                className="p-2 border rounded-md"
+                className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                 value={passwordForm.oldPassword}
                 onChange={(e) =>
                   setPasswordForm({
@@ -676,12 +722,14 @@ export default function DashboardPage() {
                 }
               />
             </div>
-            <div className="flex flex-col">
-              <label>New Password</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                New Password
+              </label>
               <input
                 type="password"
                 required
-                className="p-2 border rounded-md"
+                className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                 value={passwordForm.newPassword}
                 onChange={(e) =>
                   setPasswordForm({
@@ -691,12 +739,14 @@ export default function DashboardPage() {
                 }
               />
             </div>
-            <div className="flex flex-col">
-              <label>Confirm New Password</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Confirm New Password
+              </label>
               <input
                 type="password"
                 required
-                className="p-2 border rounded-md"
+                className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                 value={passwordForm.confirmPassword}
                 onChange={(e) =>
                   setPasswordForm({
@@ -706,11 +756,13 @@ export default function DashboardPage() {
                 }
               />
             </div>
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end gap-3 pt-2">
               <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
               </DialogClose>
-              <Button type="submit">Save</Button>
+              <Button type="submit">Save Password</Button>
             </div>
           </form>
         </DialogContent>
