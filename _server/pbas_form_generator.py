@@ -422,20 +422,284 @@ Not Satisfactory: lf neither good nor satisfactory in overall grading."""
         note_text = """For the purpose of assessing the grading of Activity at Serial No. l and SerialNo.2, all such periods of duration which have been spent by the teacher on different kinds of paid leaves such as Maternity Leave, Child Care Leave, Study Leave, Medical Leave, Extraordinary Leave and Deputation shall be excluded from the grading assessment. The teacher shall be assessed for the remaining period of duration and the same shall be extrapolated forth entire period of assessment to arrive at the grading of the teacher. The teacher on such leaves or deputation as mentioned above shall not be put to any disadvantage for promotion under CAS due to his/her absence from his/her teaching responsibilities subject to the condition that such leave / deputation was undertaken with the prior approval of the competent authority following all procedures laid down in these regulations and as per the acts, statutes and ordinances of the parent institution"""
         p.add_run(note_text)
     
+    def add_research_papers_table(self, papers):
+        """Add research papers table (Part B)"""
+        if not papers:
+            return
+            
+        p = self.doc.add_paragraph()
+        p.add_run('\nRESEARCH PAPERS PUBLISHED').bold = True
+        
+        table = self.doc.add_table(rows=1, cols=7)
+        table.style = 'Table Grid'
+        
+        headers = ['S.No.', 'Title of Paper', 'Authors', 'Journal/Conference', 'Year', 'Indexed In', 'Impact Factor']
+        header_cells = table.rows[0].cells
+        for i, header in enumerate(headers):
+            header_cells[i].text = header
+            for paragraph in header_cells[i].paragraphs:
+                for run in paragraph.runs:
+                    run.bold = True
+        
+        for idx, paper in enumerate(papers, 1):
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(idx)
+            row_cells[1].text = paper.get('title', '')
+            row_cells[2].text = paper.get('authors', '')
+            row_cells[3].text = paper.get('journal', '')
+            row_cells[4].text = str(paper.get('year', ''))
+            row_cells[5].text = paper.get('indexed', '')
+            row_cells[6].text = paper.get('impact_factor', '')
+    
+    def add_publications_table(self, publications):
+        """Add publications (books/chapters) table"""
+        if not publications:
+            return
+            
+        p = self.doc.add_paragraph()
+        p.add_run('\nBOOKS/CHAPTERS PUBLISHED').bold = True
+        
+        table = self.doc.add_table(rows=1, cols=6)
+        table.style = 'Table Grid'
+        
+        headers = ['S.No.', 'Title', 'Type', 'Publisher', 'ISBN', 'Year']
+        header_cells = table.rows[0].cells
+        for i, header in enumerate(headers):
+            header_cells[i].text = header
+            for paragraph in header_cells[i].paragraphs:
+                for run in paragraph.runs:
+                    run.bold = True
+        
+        for idx, pub in enumerate(publications, 1):
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(idx)
+            row_cells[1].text = pub.get('title', '')
+            row_cells[2].text = pub.get('type', '')
+            row_cells[3].text = pub.get('publisher', '')
+            row_cells[4].text = pub.get('isbn', '')
+            row_cells[5].text = str(pub.get('year', ''))
+    
+    def add_patents_table(self, patents):
+        """Add patents and awards table"""
+        if not patents:
+            return
+            
+        p = self.doc.add_paragraph()
+        p.add_run('\nPATENTS/AWARDS/RECOGNITIONS').bold = True
+        
+        table = self.doc.add_table(rows=1, cols=5)
+        table.style = 'Table Grid'
+        
+        headers = ['S.No.', 'Title', 'Category', 'Status', 'Year']
+        header_cells = table.rows[0].cells
+        for i, header in enumerate(headers):
+            header_cells[i].text = header
+            for paragraph in header_cells[i].paragraphs:
+                for run in paragraph.runs:
+                    run.bold = True
+        
+        for idx, patent in enumerate(patents, 1):
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(idx)
+            row_cells[1].text = patent.get('title', '')
+            row_cells[2].text = patent.get('category', '')
+            row_cells[3].text = patent.get('status', '')
+            row_cells[4].text = str(patent.get('year', ''))
+    
+    def add_invited_lectures_table(self, lectures):
+        """Add invited lectures table"""
+        if not lectures:
+            return
+            
+        p = self.doc.add_paragraph()
+        p.add_run('\nINVITED LECTURES/TALKS').bold = True
+        
+        table = self.doc.add_table(rows=1, cols=5)
+        table.style = 'Table Grid'
+        
+        headers = ['S.No.', 'Title', 'Organizer', 'Venue', 'Date']
+        header_cells = table.rows[0].cells
+        for i, header in enumerate(headers):
+            header_cells[i].text = header
+            for paragraph in header_cells[i].paragraphs:
+                for run in paragraph.runs:
+                    run.bold = True
+        
+        for idx, lecture in enumerate(lectures, 1):
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(idx)
+            row_cells[1].text = lecture.get('title', '')
+            row_cells[2].text = lecture.get('organizer', '')
+            row_cells[3].text = lecture.get('venue', '')
+            row_cells[4].text = lecture.get('date', '')
+    
+    def add_research_projects_table(self, projects):
+        """Add research projects table"""
+        if not projects:
+            return
+            
+        p = self.doc.add_paragraph()
+        p.add_run('\nRESEARCH PROJECTS').bold = True
+        
+        table = self.doc.add_table(rows=1, cols=6)
+        table.style = 'Table Grid'
+        
+        headers = ['S.No.', 'Title', 'Funding Agency', 'Amount (₹)', 'Duration', 'Status']
+        header_cells = table.rows[0].cells
+        for i, header in enumerate(headers):
+            header_cells[i].text = header
+            for paragraph in header_cells[i].paragraphs:
+                for run in paragraph.runs:
+                    run.bold = True
+        
+        for idx, proj in enumerate(projects, 1):
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(idx)
+            row_cells[1].text = proj.get('title', '')
+            row_cells[2].text = proj.get('funding_agency', '')
+            row_cells[3].text = str(proj.get('amount', ''))
+            row_cells[4].text = proj.get('duration', '')
+            row_cells[5].text = proj.get('status', '')
+    
+    def add_consultancy_table(self, projects):
+        """Add consultancy projects table"""
+        if not projects:
+            return
+            
+        p = self.doc.add_paragraph()
+        p.add_run('\nCONSULTANCY PROJECTS').bold = True
+        
+        table = self.doc.add_table(rows=1, cols=5)
+        table.style = 'Table Grid'
+        
+        headers = ['S.No.', 'Title', 'Organization', 'Amount (₹)', 'Year']
+        header_cells = table.rows[0].cells
+        for i, header in enumerate(headers):
+            header_cells[i].text = header
+            for paragraph in header_cells[i].paragraphs:
+                for run in paragraph.runs:
+                    run.bold = True
+        
+        for idx, proj in enumerate(projects, 1):
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(idx)
+            row_cells[1].text = proj.get('title', '')
+            row_cells[2].text = proj.get('organization', '')
+            row_cells[3].text = str(proj.get('amount', ''))
+            row_cells[4].text = str(proj.get('year', ''))
+    
+    def add_research_guidance_table(self, guidance):
+        """Add research guidance table"""
+        if not guidance:
+            return
+            
+        p = self.doc.add_paragraph()
+        p.add_run('\nRESEARCH GUIDANCE').bold = True
+        
+        table = self.doc.add_table(rows=1, cols=5)
+        table.style = 'Table Grid'
+        
+        headers = ['S.No.', 'Student Name', 'Level', 'Thesis Title', 'Status']
+        header_cells = table.rows[0].cells
+        for i, header in enumerate(headers):
+            header_cells[i].text = header
+            for paragraph in header_cells[i].paragraphs:
+                for run in paragraph.runs:
+                    run.bold = True
+        
+        for idx, g in enumerate(guidance, 1):
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(idx)
+            row_cells[1].text = g.get('student_name', '')
+            row_cells[2].text = g.get('level', '')
+            row_cells[3].text = g.get('title', '')
+            row_cells[4].text = g.get('status', '')
+    
+    def add_ict_innovations_table(self, innovations):
+        """Add ICT innovations table"""
+        if not innovations:
+            return
+            
+        p = self.doc.add_paragraph()
+        p.add_run('\nICT INNOVATIONS AND INITIATIVES').bold = True
+        
+        table = self.doc.add_table(rows=1, cols=4)
+        table.style = 'Table Grid'
+        
+        headers = ['S.No.', 'Title', 'Description', 'Year']
+        header_cells = table.rows[0].cells
+        for i, header in enumerate(headers):
+            header_cells[i].text = header
+            for paragraph in header_cells[i].paragraphs:
+                for run in paragraph.runs:
+                    run.bold = True
+        
+        for idx, ict in enumerate(innovations, 1):
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(idx)
+            row_cells[1].text = ict.get('title', '')
+            row_cells[2].text = ict.get('description', '') + '\nImpact: ' + ict.get('impact', '')
+            row_cells[3].text = str(ict.get('year', ''))
+    
+    def add_courses_fdp_table(self, courses):
+        """Add courses/FDP attended table"""
+        if not courses:
+            return
+            
+        p = self.doc.add_paragraph()
+        p.add_run('\nCOURSES/FDP/WORKSHOPS ATTENDED').bold = True
+        
+        table = self.doc.add_table(rows=1, cols=5)
+        table.style = 'Table Grid'
+        
+        headers = ['S.No.', 'Name of Course/FDP', 'Organizer', 'Duration', 'Place']
+        header_cells = table.rows[0].cells
+        for i, header in enumerate(headers):
+            header_cells[i].text = header
+            for paragraph in header_cells[i].paragraphs:
+                for run in paragraph.runs:
+                    run.bold = True
+        
+        for idx, course in enumerate(courses, 1):
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(idx)
+            row_cells[1].text = course.get('name', '')
+            row_cells[2].text = course.get('organizer', '')
+            row_cells[3].text = course.get('duration', '')
+            row_cells[4].text = course.get('place', '')
+    
     def generate(self, data):
-        """Generate complete PBAS form"""
+        """Generate complete PBAS form with all data from Firebase"""
         self.add_title()
         self.add_basic_info_section(data)
         self.add_part_a_header()
         self.add_general_info_fields(data)
-        self.add_academic_qualifications_table(data.get('qualifications', []))
+        
+        # Use correct key names from extract_pbas_data
+        self.add_academic_qualifications_table(data.get('academic_qualifications', []))
         self.add_research_degrees_table(data.get('research_degrees', []))
         self.add_prior_appointments_table(data.get('prior_appointments', []))
         self.add_current_posts_table(data.get('current_posts', []))
         self.add_additional_fields(data)
+        
+        # Courses/FDP
+        self.add_courses_fdp_table(data.get('courses_fdp', []))
+        
+        # Part B - Teaching Assessment
         self.add_part_b_header()
         self.add_teaching_table(data.get('teaching_data', {}))
         self.add_activities_table(data.get('activities_data', {}))
+        
+        # Part B - Research & Publications
+        self.add_research_papers_table(data.get('research_papers', []))
+        self.add_publications_table(data.get('publications', []))
+        self.add_patents_table(data.get('patents_awards', []))
+        self.add_invited_lectures_table(data.get('invited_lectures', []))
+        self.add_research_projects_table(data.get('research_projects', []))
+        self.add_consultancy_table(data.get('consultancy_projects', []))
+        self.add_ict_innovations_table(data.get('ict_innovations', []))
+        self.add_research_guidance_table(data.get('research_guidance', []))
+        
         self.add_note()
         
         return self.doc

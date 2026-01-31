@@ -40,14 +40,21 @@ export default function AdminPage() {
         const data = userSnap.data();
         console.log("🔹 User data:", data);
 
-        if (data.role !== "misAdmin") {
-          console.log("🚫 Not an admin. Redirecting to /dashboard");
-          router.replace("/dashboard");
+        // Redirect all admin users to the appraisals dashboard
+        if (data.role === "misAdmin" || data.role === "admin") {
+          router.replace("/admin/appraisals");
           return;
         }
-
-        setUser(currentUser);
-        setUserData(data);
+        
+        // HOD goes to their dashboard
+        if (data.role === "hod") {
+          router.replace("/hod/dashboard");
+          return;
+        }
+        
+        // Regular faculty to dashboard
+        router.replace("/dashboard");
+        return;
 
         // Fetch all users if MIS Admin
         const usersSnapshot = await getDocs(collection(firestore, "users"));

@@ -14,6 +14,7 @@ import { doc, getDoc } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 import {
   FileText,
   BookOpen,
@@ -27,8 +28,17 @@ import {
   GraduationCap,
   Clock,
   Bot,
+  BarChart as BarChartIcon,
+  Building2,
 } from "lucide-react";
-
+import {
+  History,
+  Layers,
+  ClipboardList,
+  FileStack,
+  Presentation,
+  BookMarked,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +46,8 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
+import { InteractiveTour, HelpButton, type TourStep } from "@/components/ui/interactive-tour";
+import { MobileNav } from "@/components/ui/mobile-nav";
 
 import GeneratePBASButton from "@/components/generatePbas";
 
@@ -72,7 +84,12 @@ export default function DashboardPage() {
   const BAR_COLOR = "#6366f1";
 
   const computeMetrics = (profileData: any) => {
-    if (!profileData) return null;
+    if (!profileData) {
+      console.log("⚠️ No profile data provided");
+      return null;
+    }
+
+    console.log("🔍 Computing metrics for profile:", profileData);
 
     const researchPapers = profileData.part_b?.table2?.researchPapers ?? [];
     const publications = profileData.part_b?.table2?.publications ?? [];
@@ -83,6 +100,17 @@ export default function DashboardPage() {
     const consultancyProjects =
       profileData.part_b?.table2?.consultancyProjects ?? [];
     const guidance = profileData.part_b?.table2?.researchGuidance ?? [];
+
+    console.log("📊 Array lengths:", {
+      researchPapers: researchPapers.length,
+      publications: publications.length,
+      patents: patents.length,
+      lectures: lectures.length,
+      courses: courses.length,
+      researchProjects: researchProjects.length,
+      consultancyProjects: consultancyProjects.length,
+      guidance: guidance.length,
+    });
 
     const totalResearchPapers = researchPapers.length;
     const totalPublications = publications.length;
@@ -214,8 +242,28 @@ export default function DashboardPage() {
           return;
         }
         const liveProfile = userDoc.data();
+        
+        // Redirect admin users directly to admin dashboard
+        if (liveProfile.role === "misAdmin" || liveProfile.role === "admin") {
+          router.replace("/admin/appraisals");
+          return;
+        }
+        
+        // Redirect HOD to HOD dashboard
+        if (liveProfile.role === "hod") {
+          router.replace("/hod/dashboard");
+          return;
+        }
+        
+        console.log("📊 Loaded profile from Firebase:", liveProfile);
+        console.log("📝 Part B data:", liveProfile?.part_b);
+        console.log("📚 Publications:", liveProfile?.part_b?.table2?.publications);
+        console.log("🔬 Research Papers:", liveProfile?.part_b?.table2?.researchPapers);
+        console.log("🏆 Patents:", liveProfile?.part_b?.patents_policy_awards);
+        
         setProfile(liveProfile || {});
         const liveMetrics = computeMetrics(liveProfile);
+        console.log("📈 Computed metrics:", liveMetrics);
         setMetrics(liveMetrics);
         try {
           localStorage.setItem("pbas_profile", JSON.stringify(liveProfile));
@@ -321,8 +369,8 @@ export default function DashboardPage() {
 
   const donutData = metrics
     ? Object.entries(metrics.categoryCounts)
-        .filter(([_, value]) => value > 0)
-        .map(([name, value]) => ({ name, value }))
+        .filter(([_, value]) => (value as number) > 0)
+        .map(([name, value]) => ({ name, value: value as number }))
     : [];
 
   const quickActions = [
@@ -354,7 +402,7 @@ export default function DashboardPage() {
       title: "Employment History",
       subtitle: "Past Employment Info",
       href: "/dashboard/forms/part-a/employment-history",
-      icon: Briefcase,
+      icon: History,
     },
     {
       title: "Teaching Experience",
@@ -366,43 +414,63 @@ export default function DashboardPage() {
       title: "Courses & FDP",
       subtitle: "Refresher & MOOCs",
       href: "/dashboard/forms/part-a/courses_fdp",
-      icon: Clock,
+      icon: Layers,
     },
     {
-      title: "Research & Academic",
+      title: "Teaching & Student Activity Assessment",
+      subtitle: "Self & Verified Grading",
+      href: "/dashboard/forms/part-b/table1",
+      icon: ClipboardList,
+    },
+    {
+      title: "Research & Academic Contribution",
       subtitle: "Self & Verified Contributions",
       href: "/dashboard/forms/part-b/table2",
-      icon: FileText,
+      icon: FileStack,
     },
     {
-      title: "Patents & Awards",
-      subtitle: "Assessment Overview",
+      title: "Patents, Policy, and Awards Module",
+      subtitle: "Patents, Policy, and Awards Assessment",
       href: "/dashboard/forms/part-b/patents_policy_awards",
-      icon: Award,
+      icon: Lightbulb,
     },
     {
-      title: "Lectures & Talks",
-      subtitle: "Conference and Presentations",
+      title: "Lectures & Conference Presentations",
+      subtitle: "Lectures & Conference Presentations Assessment",
       href: "/dashboard/forms/part-b/invited_lectures",
-      icon: Calendar,
+      icon: Presentation,
     },
   ];
 
-  const totals = metrics?.totals ?? {};
+  const totals = metrics?.totals ?? {
+    totalResearchPapers: 0,
+    totalPublications: 0,
+    totalPatents: 0,
+    totalLectures: 0,
+    totalCourses: 0,
+    totalResearchProjects: 0,
+    totalConsultancy: 0,
+    totalGuidance: 0,
+    totalOutputs: 0,
+    totalGrantAmount: 0,
+  };
+
+  console.log("📊 Current totals:", totals);
+  console.log("📊 Current metrics:", metrics);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-50">
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-50 pb-20 md:pb-6">
+      <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
         {/* Header */}
-        <header className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">
+        <header className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 border border-slate-200" data-tour="profile-header">
+          <div className="flex flex-col space-y-4">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
                 Welcome back,{" "}
                 {profile?.personal_in?.name ?? profile?.name ?? "Faculty"}!
               </h1>
               <div className="flex flex-wrap items-center gap-2 mt-2">
-                <p className="text-slate-600">
+                <p className="text-sm sm:text-base text-slate-600">
                   {profile?.formHeader?.department_name ??
                     profile?.department ??
                     ""}
@@ -410,25 +478,51 @@ export default function DashboardPage() {
                 {profile?.formHeader?.academic_year && (
                   <>
                     <span className="text-slate-400">•</span>
-                    <p className="text-slate-600">
+                    <p className="text-sm sm:text-base text-slate-600">
                       {profile.formHeader.academic_year}
                     </p>
                   </>
                 )}
               </div>
               {profile?.formHeader?.cas_promotion_stage && (
-                <div className="mt-3 inline-block px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 text-sm font-medium">
+                <div className="mt-3 inline-block px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 text-xs sm:text-sm font-medium">
                   {profile.formHeader.cas_promotion_stage}
                 </div>
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <GeneratePBASButton userId={auth.currentUser?.uid ?? ""} />
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <div data-tour="generate-pbas" className="w-full sm:w-auto">
+                <GeneratePBASButton userId={auth.currentUser?.uid ?? ""} />
+              </div>
+              {(profile?.role === "misAdmin" || 
+                profile?.role === "admin") && (
+                <Link href="/admin/appraisals" className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full shadow-sm bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:border-purple-300">
+                    <BarChartIcon className="mr-2 h-4 w-4" /> Admin Dashboard
+                  </Button>
+                </Link>
+              )}
+              {profile?.role === "hod" && (
+                <Link href="/hod/dashboard" className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full shadow-sm bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300">
+                    <Building2 className="mr-2 h-4 w-4" /> HOD Dashboard
+                  </Button>
+                </Link>
+              )}
+              {(profile?.role === "misAdmin" || 
+                profile?.role === "admin" || 
+                profile?.role === "hod") && (
+                <Link href="/dashboard/stats" className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full shadow-sm bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200 hover:border-blue-300">
+                    <BarChartIcon className="mr-2 h-4 w-4" /> Faculty Stats
+                  </Button>
+                </Link>
+              )}
               <Button
                 variant="outline"
                 onClick={() => setShowPasswordModal(true)}
-                className="shadow-sm"
+                className="w-full sm:w-auto shadow-sm"
               >
                 <Key className="mr-2 h-4 w-4" /> Change Password
               </Button>
@@ -438,7 +532,7 @@ export default function DashboardPage() {
                   await signOut(auth);
                   router.replace("/auth/login");
                 }}
-                className="shadow-sm"
+                className="w-full sm:w-auto shadow-sm"
               >
                 <LogOut className="mr-2 h-4 w-4" /> Logout
               </Button>
@@ -446,8 +540,41 @@ export default function DashboardPage() {
           </div>
         </header>
 
+        {/* Empty Data Banner - Only show if truly no data */}
+        {totals?.totalOutputs === 0 && totals?.totalCourses === 0 && (
+          <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-start gap-3">
+                <Lightbulb className="h-6 w-6 text-blue-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-semibold text-blue-900 mb-1">
+                    Welcome! Let's build your PBAS profile
+                  </h3>
+                  <p className="text-sm text-blue-700 mb-3">
+                    Your profile is empty. Start by filling out your academic information, 
+                    publications, and research work using the forms below. Data is automatically 
+                    saved to Firebase and will appear here in real-time.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Link href="/dashboard/forms/part-a/personal-info">
+                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                        Start with Personal Info
+                      </Button>
+                    </Link>
+                    <Link href="/dashboard/forms/part-b/table2">
+                      <Button size="sm" variant="outline" className="border-blue-300">
+                        Add Publications
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base font-semibold text-slate-700">
@@ -630,7 +757,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Insights */}
-        <Card className="border-slate-200 shadow-sm bg-gradient-to-br from-amber-50 to-white">
+        <Card className="border-slate-200 shadow-sm bg-gradient-to-br from-amber-50 to-white" data-tour="stats-overview">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900">
               <Lightbulb className="h-5 w-5 text-amber-500" />
@@ -652,7 +779,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Quick Actions */}
-        <div>
+        <div data-tour="quick-actions">
           <h2 className="text-xl font-semibold text-slate-900 mb-4">
             Quick Actions
           </h2>
@@ -767,6 +894,40 @@ export default function DashboardPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Interactive Tour */}
+      <InteractiveTour />
+      <HelpButton
+        steps={[
+          {
+            target: "[data-tour='profile-header']",
+            title: "Welcome to Your Dashboard!",
+            content: "This is your personal dashboard where you can manage your PBAS forms and track your academic achievements.",
+            placement: "bottom",
+          },
+          {
+            target: "[data-tour='quick-actions']",
+            title: "Quick Actions",
+            content: "Access all your important PBAS forms from here. Click any category to start filling your forms.",
+            placement: "bottom",
+          },
+          {
+            target: "[data-tour='stats-overview']",
+            title: "Your Statistics",
+            content: "Track your research outputs, publications, and academic contributions at a glance.",
+            placement: "top",
+          },
+          {
+            target: "[data-tour='generate-pbas']",
+            title: "Generate PBAS Report",
+            content: "When you're ready, click here to generate your complete PBAS report PDF.",
+            placement: "left",
+          },
+        ]}
+      />
+      
+      {/* Mobile Bottom Navigation */}
+      <MobileNav />
     </div>
   );
 }

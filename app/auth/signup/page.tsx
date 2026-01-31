@@ -1,18 +1,28 @@
-// 1. UPDATED SIGNUP PAGE (auth/signup/page.tsx)
-"use client"
+"use client";
 
-import type React from "react"
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Eye, EyeOff, UserPlus, ArrowLeft } from "lucide-react"
+import { useState } from "react";
+import { auth, db as firestore } from "@/lib/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Eye, EyeOff, UserPlus, ArrowLeft, CheckCircle } from "lucide-react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+
+const DEPARTMENTS = [
+  "Electronics & Computer Science",
+  "Computer",
+  "Automation & Robotics",
+  "Electronics and Telecommunication",
+  "Information Technology",
+  "AI and Data Science",
+  "Humanities and Applied Sciences(FE)",
+];
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -23,199 +33,309 @@ export default function SignUpPage() {
     role: "faculty",
     department: "",
     employeeId: "",
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
-  const supabase = createClient()
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const router = useRouter();
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match")
-      setIsLoading(false)
-      return
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
     }
 
     if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long")
-      setIsLoading(false)
-      return
+      setError("Password must be at least 6 characters long");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.department) {
+      setError("Please select a department");
+      setIsLoading(false);
+      return;
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+
+      // Create user profile in Firestore
+      await setDoc(doc(firestore, "users", userCredential.user.uid), {
         email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-          data: {
-            full_name: formData.fullName,
-            role: formData.role,
-            department: formData.department,
-            employee_id: formData.employeeId,
-          },
-        },
-      })
+        name: formData.fullName,
+        full_name: formData.fullName,
+        role: formData.role,
+        department: formData.department,
+        employee_id: formData.employeeId || "",
+        designation: "Faculty",
+        phone: "",
+        created_at: new Date().toISOString(),
+        is_active: true,
+      });
 
-      if (error) throw error
-
-      // Check if email confirmation is required
-      if (data.user && !data.user.email_confirmed_at) {
-        router.push("/auth/check-email")
+      setSuccess(true);
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 2000);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Signup failed";
+      if (errorMessage.includes("email-already-in-use")) {
+        setError("This email is already registered");
+      } else if (errorMessage.includes("invalid-email")) {
+        setError("Invalid email address");
       } else {
-        router.push("/dashboard")
+        setError(errorMessage);
       }
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
+  };
+
+  if (success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <Card className="backdrop-blur-xl bg-white/10 border-white/20">
+            <CardContent className="pt-6">
+              <CheckCircle className="h-16 w-16 text-green-400 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-white mb-2">Account Created!</h2>
+              <p className="text-gray-300">Redirecting to dashboard...</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        <Card className="shadow-lg">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-display">Create Account</CardTitle>
-            <CardDescription>Sign up for Shikshak Sarthi</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSignUp} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Animated Background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 90, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            scale: [1.2, 1, 1.2],
+            rotate: [90, 0, 90],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl"
+        />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md mx-auto p-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+          <Link href="/auth/login">
+            <Button variant="ghost" className="mb-4 text-white hover:text-white hover:bg-white/10">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Login
+            </Button>
+          </Link>
+
+          <Card className="backdrop-blur-xl bg-white/10 border-white/20 shadow-2xl">
+            <CardHeader className="text-center">
+              <CardTitle className="text-3xl font-bold text-white">Create Account</CardTitle>
+              <CardDescription className="text-gray-300">
+                Join Shikshak Sarthi today
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSignUp} className="space-y-4">
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 text-sm text-red-300"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="fullName" className="text-white">
+                    Full Name *
+                  </Label>
                   <Input
                     id="fullName"
+                    type="text"
+                    placeholder="Dr. John Doe"
                     value={formData.fullName}
                     onChange={(e) => handleInputChange("fullName", e.target.value)}
                     required
+                    disabled={isLoading}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-400"
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="employeeId">Employee ID</Label>
+                  <Label htmlFor="email" className="text-white">
+                    Email *
+                  </Label>
                   <Input
-                    id="employeeId"
-                    value={formData.employeeId}
-                    onChange={(e) => handleInputChange("employeeId", e.target.value)}
+                    id="email"
+                    type="email"
+                    placeholder="your.email@ves.ac.in"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
                     required
+                    disabled={isLoading}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-400"
                   />
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Select value={formData.role} onValueChange={(value) => handleInputChange("role", value)}>
-                    <SelectTrigger>
-                      <SelectValue />
+                  <Label htmlFor="department" className="text-white">
+                    Department *
+                  </Label>
+                  <Select
+                    value={formData.department}
+                    onValueChange={(value) => handleInputChange("department", value)}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white focus:border-blue-400">
+                      <SelectValue placeholder="Select department" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="faculty">Faculty</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
+                      {DEPARTMENTS.map((dept) => (
+                        <SelectItem key={dept} value={dept}>
+                          {dept}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="department">Department</Label>
+                  <Label htmlFor="employeeId" className="text-white">
+                    Employee ID
+                  </Label>
                   <Input
-                    id="department"
-                    value={formData.department}
-                    onChange={(e) => handleInputChange("department", e.target.value)}
-                    required
+                    id="employeeId"
+                    type="text"
+                    placeholder="EMP12345"
+                    value={formData.employeeId}
+                    onChange={(e) => handleInputChange("employeeId", e.target.value)}
+                    disabled={isLoading}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-400"
                   />
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={(e) => handleInputChange("password", e.target.value)}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-white">
+                    Password *
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Create a strong password"
+                      value={formData.password}
+                      onChange={(e) => handleInputChange("password", e.target.value)}
+                      required
+                      disabled={isLoading}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-400 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-400">At least 6 characters</p>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={formData.confirmPassword}
-                    onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-white">
+                    Confirm Password *
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Confirm your password"
+                      value={formData.confirmPassword}
+                      onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                      required
+                      disabled={isLoading}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-400 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
+
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-6 rounded-lg shadow-lg transform transition-all hover:scale-105"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="h-5 w-5 border-2 border-t-transparent border-white rounded-full"
+                    />
+                  ) : (
+                    <>
+                      <UserPlus className="h-5 w-5 mr-2" />
+                      Create Account
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              <div className="mt-6 text-center text-sm text-gray-400">
+                Already have an account?{" "}
+                <Link href="/auth/login" className="text-blue-400 hover:text-blue-300 font-medium">
+                  Sign in
+                </Link>
               </div>
-
-              {error && <div className="text-sm text-red-600">{error}</div>}
-
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>Loading...</>
-                ) : (
-                  <>
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Sign Up
-                  </>
-                )}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center text-sm">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="font-medium text-primary hover:underline">
-                Sign in
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
     </div>
-  )
+  );
 }

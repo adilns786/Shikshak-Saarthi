@@ -1,41 +1,75 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Mail, ArrowLeft, Send } from "lucide-react"
+import type React from "react";
+import { useState } from "react";
+import { auth } from "@/lib/firebase";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Mail, ArrowLeft, Send, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const supabase = createClient()
-    setIsLoading(true)
-    setError(null)
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      })
-      if (error) throw error
-      setSuccess(true)
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      // Send password reset email using Firebase
+      await sendPasswordResetEmail(auth, email, {
+        url: `${window.location.origin}/auth/login?resetSuccess=true`,
+        handleCodeInApp: false,
+      });
+
+      // Also send notification email via Resend for better formatting
+      try {
+        await fetch("/api/email/password-reset", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+      } catch (emailErr) {
+        // Non-blocking - Firebase email will still work
+        console.log("Additional email notification failed:", emailErr);
+      }
+
+      setSuccess(true);
+    } catch (error: any) {
+      console.error("Password reset error:", error);
+      
+      // Handle specific Firebase errors
+      switch (error.code) {
+        case "auth/user-not-found":
+          setError("No account found with this email address.");
+          break;
+        case "auth/invalid-email":
+          setError("Please enter a valid email address.");
+          break;
+        case "auth/too-many-requests":
+          setError("Too many attempts. Please try again later.");
+          break;
+        default:
+          setError(error.message || "Failed to send reset email. Please try again.");
+      }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (success) {
     return (

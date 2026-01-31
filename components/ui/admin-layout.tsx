@@ -17,7 +17,8 @@ import {
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { auth } from "@/lib/firebase"
+import { signOut } from "firebase/auth"
 import {
   LayoutDashboard,
   FileText,
@@ -28,7 +29,6 @@ import {
   Menu,
   Bell,
   Shield,
-  Database,
 } from "lucide-react"
 
 interface AdminLayoutProps {
@@ -44,22 +44,18 @@ interface AdminLayoutProps {
 }
 
 const navigation = [
-  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { name: "Appraisals", href: "/admin/appraisals", icon: FileText },
-  { name: "Users", href: "/admin/users", icon: Users },
-  { name: "Reports", href: "/admin/reports", icon: BarChart3 },
-  { name: "Configuration", href: "/admin/config", icon: Settings },
-  { name: "Data Management", href: "/admin/data", icon: Database },
-]
+  { name: "Dashboard", href: "/admin/appraisals", icon: LayoutDashboard },
+  { name: "Manage Users", href: "/admin/users", icon: Users },
+  { name: "Faculty Stats", href: "/dashboard/stats", icon: BarChart3 },
+];
 
 export function AdminLayout({ children, user }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push("/")
+    await signOut(auth);
+    router.push("/auth/login");
   }
 
   const userInitials =
@@ -147,9 +143,6 @@ export function AdminLayout({ children, user }: AdminLayoutProps) {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard">Faculty View</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
                     <Link href="/admin/config">
                       <Settings className="mr-2 h-4 w-4" />
                       Settings
@@ -162,6 +155,15 @@ export function AdminLayout({ children, user }: AdminLayoutProps) {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden sm:flex border-red-200 hover:bg-red-50 hover:text-red-700"
+                onClick={handleSignOut}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
             </div>
           </div>
         </div>
