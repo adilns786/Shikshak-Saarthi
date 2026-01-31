@@ -1,11 +1,13 @@
-// firebaseConfig.ts
-import { initializeApp } from "firebase/app";
-import { getAnalytics, isSupported as isAnalyticsSupported } from "firebase/analytics";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+// Firebase configuration - imports from root firebaseConfig.js
+import { auth, firestore } from "@/firebaseConfig";
 import { getStorage } from "firebase/storage";
+import { initializeApp } from "firebase/app";
 
-// Firebase configuration
+// Re-export auth and firestore from root config
+export { auth };
+export const db = firestore;
+
+// Initialize storage (using same app instance)
 const firebaseConfig = {
   apiKey: "AIzaSyBdv7Fam8KP8mkyF_UP7RfURM6OwFNd7vQ",
   authDomain: "shikshak-sarthi.firebaseapp.com",
@@ -16,21 +18,5 @@ const firebaseConfig = {
   measurementId: "G-B890CNWZLE",
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Initialize Firebase services
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-
-// Initialize Analytics only if supported (avoids SSR issues)
-let analytics: ReturnType<typeof getAnalytics> | null = null;
-if (typeof window !== "undefined") {
-  isAnalyticsSupported().then((supported) => {
-    if (supported) analytics = getAnalytics(app);
-  });
-}
-
-// Export instances
-export { app, auth, db, storage, analytics };
+export const storage = getStorage(app);
