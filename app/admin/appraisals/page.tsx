@@ -1,204 +1,194 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { AdminLayout } from "@/components/ui/admin-layout"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import Link from "next/link"
-import { formatDistanceToNow } from "date-fns"
-import { Eye, MessageSquare, Download, Search, Filter } from "lucide-react"
+"use client";
 
-const statusColors = {
-  draft: "secondary",
-  submitted: "default",
-  under_review: "default",
-  approved: "default",
-  rejected: "destructive",
-} as const
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { auth, db as firestore } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { AdminLayout } from "@/components/ui/admin-layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Users, FileText, CheckCircle, Clock, BarChart3 } from "lucide-react";
+import { motion } from "framer-motion";
 
-const statusLabels = {
-  draft: "Draft",
-  submitted: "Pending Review",
-  under_review: "Under Review",
-  approved: "Approved",
-  rejected: "Rejected",
-}
+export default function AdminAppraisalsPage() {
+  const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const router = useRouter();
 
-export default async function AdminAppraisalsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ status?: string; search?: string }>
-}) {
-  const supabase = await createClient()
-  const params = await searchParams
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        router.replace("/auth/login");
+        return;
+      }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    redirect("/auth/login")
-  }
+      try {
+        const userDoc = await getDoc(doc(firestore, "users", user.uid));
+        if (!userDoc.exists()) {
+          router.replace("/auth/login");
+          return;
+        }
 
-  // Get user profile and check admin role
-  const { data: profile } = await supabase.from("users").select("*").eq("id", user.id).single()
+        const userData = userDoc.data();
+        
+        // HOD should go to their own dashboard
+        if (userData.role === "hod") {
+          router.replace("/hod/dashboard");
+          return;
+        }
+        
+        // Only admins can access this page
+        if (userData.role !== "misAdmin" && userData.role !== "admin") {
+          router.replace("/dashboard");
+          return;
+        }
 
-  if (!profile || profile.role !== "admin") {
-    redirect("/dashboard")
-  }
+        setUserRole(userData.role);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error:", err);
+        router.replace("/auth/login");
+      }
+    });
 
-  // Build query
-  let query = supabase
-    .from("appraisals")
-    .select(`
-      id,
-      title,
-      academic_year,
-      status,
-      created_at,
-      submitted_at,
-      user:users(id, full_name, email, department)
-    `)
-    .order("created_at", { ascending: false })
+    return () => unsubscribe();
+  }, [router]);
 
-  // Apply filters
-  if (params.status && params.status !== "all") {
-    query = query.eq("status", params.status)
-  }
-
-  const { data: appraisals } = await query
-
-  // Filter by search term (client-side for simplicity)
-  const filteredAppraisals = appraisals?.filter((appraisal) => {
-    if (!params.search) return true
-    const searchTerm = params.search.toLowerCase()
+  if (loading) {
     return (
-      appraisal.title.toLowerCase().includes(searchTerm) ||
-      appraisal.user?.full_name.toLowerCase().includes(searchTerm) ||
-      appraisal.user?.department?.toLowerCase().includes(searchTerm)
-    )
-  })
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-50">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="h-16 w-16 border-4 border-t-transparent border-blue-500 rounded-full"
+        />
+      </div>
+    );
+  }
 
   return (
-    <AdminLayout user={profile}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-display font-bold text-primary">Appraisal Management</h1>
-            <p className="text-muted-foreground mt-1">Review and manage faculty appraisals.</p>
-          </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Export All
-            </Button>
-          </div>
-        </div>
+    <AdminLayout>
+      <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+        <header className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 border border-slate-200">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Admin Dashboard</h1>
+          <p className="text-sm sm:text-base text-slate-600 mt-1">Manage faculty appraisals and system settings</p>
+        </header>
 
-        {/* Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Filters</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search appraisals, faculty names, or departments..."
-                    className="pl-10"
-                    defaultValue={params.search}
-                  />
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-600 mb-1">Total Faculty</p>
+                  <p className="text-3xl font-bold text-blue-600">24</p>
+                </div>
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <Users className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
-              <Select defaultValue={params.status || "all"}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="submitted">Pending Review</SelectItem>
-                  <SelectItem value="under_review">Under Review</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline">
-                <Filter className="mr-2 h-4 w-4" />
-                Apply Filters
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Appraisals List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Appraisals ({filteredAppraisals?.length || 0})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {!filteredAppraisals || filteredAppraisals.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">No appraisals found matching your criteria.</p>
+          <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-600 mb-1">Pending Reviews</p>
+                  <p className="text-3xl font-bold text-orange-600">8</p>
+                </div>
+                <div className="p-3 bg-orange-100 rounded-xl">
+                  <Clock className="h-6 w-6 text-orange-600" />
+                </div>
               </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredAppraisals.map((appraisal) => (
-                  <div
-                    key={appraisal.id}
-                    className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium text-foreground mb-1">{appraisal.title}</h4>
-                          <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-2">
-                            <span>by {appraisal.user?.full_name}</span>
-                            {appraisal.user?.department && (
-                              <>
-                                <span>•</span>
-                                <span>{appraisal.user.department}</span>
-                              </>
-                            )}
-                            <span>•</span>
-                            <span>AY {appraisal.academic_year}</span>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <Badge variant={statusColors[appraisal.status as keyof typeof statusColors]}>
-                              {statusLabels[appraisal.status as keyof typeof statusLabels]}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {appraisal.submitted_at
-                                ? `Submitted ${formatDistanceToNow(new Date(appraisal.submitted_at), { addSuffix: true })}`
-                                : `Created ${formatDistanceToNow(new Date(appraisal.created_at), { addSuffix: true })}`}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/admin/appraisals/${appraisal.id}`}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          Review
-                        </Link>
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <MessageSquare className="mr-2 h-4 w-4" />
-                        Comment
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-600 mb-1">Approved</p>
+                  <p className="text-3xl font-bold text-green-600">12</p>
+                </div>
+                <div className="p-3 bg-green-100 rounded-xl">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-600 mb-1">Submissions</p>
+                  <p className="text-3xl font-bold text-purple-600">20</p>
+                </div>
+                <div className="p-3 bg-purple-100 rounded-xl">
+                  <FileText className="h-6 w-6 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Admin Actions */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-blue-600" />
+                Manage Users
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate-600 mb-4">
+                Create, update, and manage faculty user accounts
+              </p>
+              <Link href="/admin/manage-users">
+                <Button className="w-full">Manage Users</Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-purple-600" />
+                Faculty Statistics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate-600 mb-4">
+                View comprehensive analytics and performance metrics
+              </p>
+              <Link href="/dashboard/stats">
+                <Button className="w-full" variant="outline">View Statistics</Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-green-600" />
+                Review Appraisals
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate-600 mb-4">
+                Review and approve faculty PBAS submissions
+              </p>
+              <Button className="w-full" variant="outline" disabled>
+                Coming Soon
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </AdminLayout>
-  )
+  );
 }

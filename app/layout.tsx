@@ -20,8 +20,17 @@ const playfairDisplay = Playfair_Display({
 
 export const metadata = {
   title: "Shikshak Sarthi - Faculty Appraisal System",
-  description: "Automated Faculty Appraisal & Development System for Educational Institutions",
+  description: "Professional Faculty Performance Appraisal & Development System for VESIT",
   generator: "v0.app",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 }
 
 export default function RootLayout({
