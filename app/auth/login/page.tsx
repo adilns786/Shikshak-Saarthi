@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { auth, db as firestore } from "@/lib/firebase";
 import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,13 +47,16 @@ export default function LoginPage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [resetSuccess, setResetSuccess] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (searchParams.get("resetSuccess") === "true") {
-      setResetSuccess(true);
+    // read url params on client without using next/navigation hooks (avoids SSR/suspense issues)
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("resetSuccess") === "true") setResetSuccess(true);
+    } catch (e) {
+      // ignore during prerender
     }
-  }, [searchParams]);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
