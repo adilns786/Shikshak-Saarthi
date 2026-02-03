@@ -24,4 +24,4 @@ pytest-flask>=1.2.0
 black>=23.7.0
 flake8>=6.1.0
 
-firebasae-admin
+firebase-admin
