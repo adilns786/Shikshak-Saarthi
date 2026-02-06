@@ -99,7 +99,7 @@ export default function LlmFormMapper() {
       }
 
       const data = await res.json();
-
+      console.log("Received response from API:", data);
       // expect data.mappings to be array of {id, value}
       if (Array.isArray(data.mappings)) {
         setMappings(data.mappings);
