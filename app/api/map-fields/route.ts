@@ -35,7 +35,7 @@ Rules:
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
-
+    console.log("Raw response from Gemini:", responseText);
     // Try to safely parse JSON
     let jsonOutput;
     try {
