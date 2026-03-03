@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { auth, db as firestore } from "@/lib/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  updateDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, XCircle, Loader2, UserPlus } from "lucide-react";
@@ -11,21 +19,22 @@ import { motion } from "framer-motion";
 
 const DEV_USERS = [
   {
-    email: 'd2022.darshan.khapekar@ves.ac.in',
-    password: '123456789',
-    name: 'Darshan Khapekar',
-    role: 'faculty',
-    department: 'Computer',
-    designation: 'Assistant Professor',
-    employee_id: 'FAC001',
+    email: "d2022.darshan.khapekar@ves.ac.in",
+    password: "123456789",
+    name: "Darshan Khapekar",
+    role: "faculty",
+    department: "Computer",
+    designation: "Assistant Professor",
+    employee_id: "FAC001",
     fullData: {
       formHeader: {
         academic_year: "2025-26",
         cas_promotion_stage: "Stage 1",
         department_name: "Computer",
         faculty_name: "Faculty of Engineering and Technology",
-        institute_name: "Vivekanand Education Society's Institute of Technology",
-        name: "Darshan Khapekar"
+        institute_name:
+          "Vivekanand Education Society's Institute of Technology",
+        name: "Darshan Khapekar",
       },
       part_a: {
         academic_qualifications: [
@@ -35,13 +44,13 @@ const DEV_USERS = [
             examination: "BE",
             percentage: "85",
             subject: "Computer Engineering",
-            year_passing: "2020"
-          }
+            year_passing: "2020",
+          },
         ],
         courses_fdp: [],
         employment: {
           posts: [],
-          prior: []
+          prior: [],
         },
         personal_in: {
           address: "Mumbai, Maharashtra",
@@ -53,19 +62,19 @@ const DEV_USERS = [
           email: "d2022.darshan.khapekar@ves.ac.in",
           level_cas: "Stage 1",
           name: "Darshan Khapekar",
-          telephone: "9876543210"
+          telephone: "9876543210",
         },
         research_degrees: [],
         teaching_research_experience: {
           pg_years: "3",
           research_years: "1",
           specialization: "Artificial Intelligence",
-          ug_years: "2"
+          ug_years: "2",
         },
         teaching_student_assessment: {
           activities: [],
-          teaching: []
-        }
+          teaching: [],
+        },
       },
       part_b: {
         invited_lectures: [],
@@ -76,34 +85,35 @@ const DEV_USERS = [
           publications: [],
           researchGuidance: [],
           researchPapers: [],
-          researchProjects: []
-        }
-      }
-    }
+          researchProjects: [],
+        },
+      },
+    },
   },
   {
-    email: 'admin@ves.ac.in',
-    password: '123456789',
-    name: 'Admin User',
-    role: 'misAdmin',
-    department: 'Computer',
-    designation: 'Administrator',
-    employee_id: 'ADM001',
+    email: "admin@ves.ac.in",
+    password: "123456789",
+    name: "Admin User",
+    role: "misAdmin",
+    department: "Computer",
+    designation: "Administrator",
+    employee_id: "ADM001",
     fullData: {
       formHeader: {
         academic_year: "2025-26",
         cas_promotion_stage: "Admin",
         department_name: "Computer",
         faculty_name: "Faculty of Engineering and Technology",
-        institute_name: "Vivekanand Education Society's Institute of Technology",
-        name: "Admin User"
+        institute_name:
+          "Vivekanand Education Society's Institute of Technology",
+        name: "Admin User",
       },
       part_a: {
         academic_qualifications: [],
         courses_fdp: [],
         employment: {
           posts: [],
-          prior: []
+          prior: [],
         },
         personal_in: {
           address: "Mumbai, Maharashtra",
@@ -115,19 +125,19 @@ const DEV_USERS = [
           email: "admin@ves.ac.in",
           level_cas: "N/A",
           name: "Admin User",
-          telephone: "9876543211"
+          telephone: "9876543211",
         },
         research_degrees: [],
         teaching_research_experience: {
           pg_years: "0",
           research_years: "0",
           specialization: "Administration",
-          ug_years: "0"
+          ug_years: "0",
         },
         teaching_student_assessment: {
           activities: [],
-          teaching: []
-        }
+          teaching: [],
+        },
       },
       part_b: {
         invited_lectures: [],
@@ -138,27 +148,28 @@ const DEV_USERS = [
           publications: [],
           researchGuidance: [],
           researchPapers: [],
-          researchProjects: []
-        }
-      }
-    }
+          researchProjects: [],
+        },
+      },
+    },
   },
   {
-    email: 'nupur.giri@ves.ac.in',
-    password: '123456789',
-    name: 'Nupur Giri',
-    role: 'hod',
-    department: 'Computer',
-    designation: 'Head of Department',
-    employee_id: 'HOD001',
+    email: "nupur.giri@ves.ac.in",
+    password: "123456789",
+    name: "Nupur Giri",
+    role: "hod",
+    department: "Computer",
+    designation: "Head of Department",
+    employee_id: "HOD001",
     fullData: {
       formHeader: {
         academic_year: "2025-26",
         cas_promotion_stage: "Stage 3",
         department_name: "Computer",
         faculty_name: "Faculty of Engineering and Technology",
-        institute_name: "Vivekanand Education Society's Institute of Technology",
-        name: "Nupur Giri"
+        institute_name:
+          "Vivekanand Education Society's Institute of Technology",
+        name: "Nupur Giri",
       },
       part_a: {
         academic_qualifications: [
@@ -168,13 +179,13 @@ const DEV_USERS = [
             examination: "ME",
             percentage: "90",
             subject: "Computer Engineering",
-            year_passing: "2015"
-          }
+            year_passing: "2015",
+          },
         ],
         courses_fdp: [],
         employment: {
           posts: [],
-          prior: []
+          prior: [],
         },
         personal_in: {
           address: "Mumbai, Maharashtra",
@@ -186,19 +197,19 @@ const DEV_USERS = [
           email: "nupur.giri@ves.ac.in",
           level_cas: "Stage 3",
           name: "Nupur Giri",
-          telephone: "9876543212"
+          telephone: "9876543212",
         },
         research_degrees: [],
         teaching_research_experience: {
           pg_years: "8",
           research_years: "5",
           specialization: "Computer Networks",
-          ug_years: "5"
+          ug_years: "5",
         },
         teaching_student_assessment: {
           activities: [],
-          teaching: []
-        }
+          teaching: [],
+        },
       },
       part_b: {
         invited_lectures: [],
@@ -209,10 +220,10 @@ const DEV_USERS = [
           publications: [],
           researchGuidance: [],
           researchPapers: [],
-          researchProjects: []
-        }
-      }
-    }
+          researchProjects: [],
+        },
+      },
+    },
   },
 ];
 
@@ -220,14 +231,14 @@ export default function CreateDevUsersPage() {
   const [results, setResults] = useState<any[]>([]);
   const [isCreating, setIsCreating] = useState(false);
 
-  const createUser = async (userData: typeof DEV_USERS[0]) => {
+  const createUser = async (userData: (typeof DEV_USERS)[0]) => {
     try {
       // Try to create user in Firebase Auth
       try {
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           userData.email,
-          userData.password
+          userData.password,
         );
 
         // Create Firestore document with complete PBAS structure
@@ -239,7 +250,7 @@ export default function CreateDevUsersPage() {
           department: userData.department,
           designation: userData.designation,
           employee_id: userData.employee_id,
-          phone: '',
+          phone: "",
           createdAt: new Date(),
           is_active: true,
           // Complete PBAS data structure
@@ -248,18 +259,18 @@ export default function CreateDevUsersPage() {
           part_b: userData.fullData.part_b,
         });
 
-        return { 
-          success: true, 
+        return {
+          success: true,
           message: `Created ${userData.role}: ${userData.email}`,
-          action: 'created'
+          action: "created",
         };
       } catch (authError: any) {
-        if (authError.code === 'auth/email-already-in-use') {
+        if (authError.code === "auth/email-already-in-use") {
           // User exists, just update Firestore
-          const usersRef = collection(firestore, 'users');
-          const q = query(usersRef, where('email', '==', userData.email));
+          const usersRef = collection(firestore, "users");
+          const q = query(usersRef, where("email", "==", userData.email));
           const querySnapshot = await getDocs(q);
-          
+
           if (!querySnapshot.empty) {
             const userId = querySnapshot.docs[0].id;
             await updateDoc(doc(firestore, "users", userId), {
@@ -275,27 +286,27 @@ export default function CreateDevUsersPage() {
               part_a: userData.fullData.part_a,
               part_b: userData.fullData.part_b,
             });
-            
-            return { 
-              success: true, 
+
+            return {
+              success: true,
               message: `Updated existing user: ${userData.email}`,
-              action: 'updated'
+              action: "updated",
             };
           }
-          
-          return { 
-            success: false, 
+
+          return {
+            success: false,
             message: `User ${userData.email} exists in Auth but not in Firestore. Please fix manually.`,
-            action: 'error'
+            action: "error",
           };
         }
         throw authError;
       }
     } catch (error: any) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         message: `Failed: ${error.message}`,
-        action: 'failed'
+        action: "failed",
       };
     }
   };
@@ -303,17 +314,17 @@ export default function CreateDevUsersPage() {
   const handleCreateAll = async () => {
     setIsCreating(true);
     setResults([]);
-    
+
     const newResults = [];
     for (const user of DEV_USERS) {
       const result = await createUser(user);
       newResults.push({ ...user, ...result });
       setResults([...newResults]);
-      
+
       // Small delay between creations
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
-    
+
     setIsCreating(false);
   };
 
@@ -343,7 +354,8 @@ export default function CreateDevUsersPage() {
                       <p className="font-semibold text-white">{user.name}</p>
                       <p className="text-sm text-gray-400">{user.email}</p>
                       <p className="text-xs text-gray-500">
-                        Role: {user.role} | Dept: {user.department} | Password: {user.password}
+                        Role: {user.role} | Dept: {user.department} | Password:{" "}
+                        {user.password}
                       </p>
                     </div>
                     {results[index] && (
@@ -361,7 +373,9 @@ export default function CreateDevUsersPage() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       className={`text-sm mt-2 ${
-                        results[index].success ? 'text-green-300' : 'text-red-300'
+                        results[index].success
+                          ? "text-green-300"
+                          : "text-red-300"
                       }`}
                     >
                       {results[index].message}
@@ -399,11 +413,12 @@ export default function CreateDevUsersPage() {
               >
                 <h3 className="font-semibold text-white mb-2">Summary</h3>
                 <p className="text-sm text-gray-300">
-                  ✅ Successful: {results.filter(r => r.success).length}/{results.length}
+                  ✅ Successful: {results.filter((r) => r.success).length}/
+                  {results.length}
                 </p>
-                {results.filter(r => !r.success).length > 0 && (
+                {results.filter((r) => !r.success).length > 0 && (
                   <p className="text-sm text-red-300">
-                    ❌ Failed: {results.filter(r => !r.success).length}
+                    ❌ Failed: {results.filter((r) => !r.success).length}
                   </p>
                 )}
               </motion.div>
@@ -411,12 +426,27 @@ export default function CreateDevUsersPage() {
 
             {/* Instructions */}
             <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
-              <h4 className="font-semibold text-blue-300 mb-2">Instructions:</h4>
+              <h4 className="font-semibold text-blue-300 mb-2">
+                Instructions:
+              </h4>
               <ul className="text-sm text-gray-300 space-y-1">
-                <li>• Click "Create All Dev Users" to create all 3 test accounts</li>
-                <li>• If users already exist, their Firestore profiles will be updated</li>
-                <li>• All users have password: <code className="bg-white/10 px-2 py-0.5 rounded">123456789</code></li>
-                <li>• After creation, you can login with these accounts from the login page</li>
+                <li>
+                  • Click "Create All Dev Users" to create all 3 test accounts
+                </li>
+                <li>
+                  • If users already exist, their Firestore profiles will be
+                  updated
+                </li>
+                <li>
+                  • All users have password:{" "}
+                  <code className="bg-white/10 px-2 py-0.5 rounded">
+                    123456789
+                  </code>
+                </li>
+                <li>
+                  • After creation, you can login with these accounts from the
+                  login page
+                </li>
               </ul>
             </div>
           </CardContent>

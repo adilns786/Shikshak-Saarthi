@@ -10,11 +10,11 @@ interface PreloaderProps {
   showProgress?: boolean;
 }
 
-export function Preloader({ 
-  isLoading = true, 
+export function Preloader({
+  isLoading = true,
   onComplete,
   message = "Loading...",
-  showProgress = true 
+  showProgress = true,
 }: PreloaderProps) {
   const [progress, setProgress] = useState(0);
   const [show, setShow] = useState(isLoading);

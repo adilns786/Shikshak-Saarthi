@@ -45,22 +45,16 @@ export default function AdminPage() {
           router.replace("/admin/appraisals");
           return;
         }
-        
+
         // HOD goes to their dashboard
         if (data.role === "hod") {
           router.replace("/hod/dashboard");
           return;
         }
-        
+
         // Regular faculty to dashboard
         router.replace("/dashboard");
         return;
-
-        // Fetch all users if MIS Admin
-        const usersSnapshot = await getDocs(collection(firestore, "users"));
-        setAllUsers(
-          usersSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-        );
       } catch (err) {
         console.error("🔥 Error fetching admin data:", err);
       } finally {

@@ -5,10 +5,18 @@ type AnyObj = Record<string, any>;
 
 function makeQuery() {
   return {
-    select() { return this; },
-    eq() { return this; },
-    order() { return this; },
-    limit() { return this; },
+    select() {
+      return this;
+    },
+    eq() {
+      return this;
+    },
+    order() {
+      return this;
+    },
+    limit() {
+      return this;
+    },
     single: async () => ({ data: null }),
     maybeSingle: async () => ({ data: null }),
     insert: async (rows: AnyObj) => ({ data: null }),

@@ -78,7 +78,12 @@ export interface PriorAppointment {
   designation: string;
   employer_name: string;
   essential_qualifications: string;
-  nature_of_appointment: "Regular" | "Fixed Term" | "Temporary" | "Adhoc" | "Contract";
+  nature_of_appointment:
+    | "Regular"
+    | "Fixed Term"
+    | "Temporary"
+    | "Adhoc"
+    | "Contract";
   nature_of_duties: string;
   date_of_joining: string;
   date_of_leaving: string;
@@ -118,7 +123,15 @@ export interface Course_FDP {
   place: string;
   duration: string;
   organizer: string;
-  type: "Orientation" | "Refresher" | "FDP" | "MOOC" | "Short Term" | "STTP" | "Workshop" | "Other";
+  type:
+    | "Orientation"
+    | "Refresher"
+    | "FDP"
+    | "MOOC"
+    | "Short Term"
+    | "STTP"
+    | "Workshop"
+    | "Other";
   start_date?: string;
   end_date?: string;
   certificate_url?: string;
@@ -173,7 +186,7 @@ export interface AdministrativeResponsibility {
 
 export interface ExaminationDuty {
   id?: string;
-  duty_type: 
+  duty_type:
     | "Question Paper Setting"
     | "Invigilation"
     | "Flying Squad"
@@ -195,7 +208,7 @@ export interface ExaminationDuty {
 
 export interface StudentActivity {
   id?: string;
-  activity_type: 
+  activity_type:
     | "Student Club"
     | "Career Counseling"
     | "Study Visit"
@@ -327,7 +340,12 @@ export interface InvitedLecture {
   organizer: string;
   venue: string;
   date: string;
-  type: "Keynote" | "Invited Talk" | "Resource Person" | "Panelist" | "Guest Lecture";
+  type:
+    | "Keynote"
+    | "Invited Talk"
+    | "Resource Person"
+    | "Panelist"
+    | "Guest Lecture";
   level: "International" | "National" | "State" | "Regional" | "Institute";
   api_score?: number;
 }
@@ -622,8 +640,12 @@ export const NATURE_OF_APPOINTMENTS = [
   "Contract",
 ] as const;
 
-export const GRADING_OPTIONS = ["Good", "Satisfactory", "Not Satisfactory"] as const;
+export const GRADING_OPTIONS = [
+  "Good",
+  "Satisfactory",
+  "Not Satisfactory",
+] as const;
 
-export type Department_Type = typeof DEPARTMENTS[number];
-export type Designation_Type = typeof DESIGNATIONS[number];
-export type AcademicLevel_Type = typeof ACADEMIC_LEVELS[number];
+export type Department_Type = (typeof DEPARTMENTS)[number];
+export type Designation_Type = (typeof DESIGNATIONS)[number];
+export type AcademicLevel_Type = (typeof ACADEMIC_LEVELS)[number];

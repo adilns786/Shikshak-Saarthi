@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, createContext, useContext, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+  useCallback,
+} from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -58,26 +64,35 @@ interface AccessibilityContextType {
   settings: AccessibilitySettings;
   updateSetting: <K extends keyof AccessibilitySettings>(
     key: K,
-    value: AccessibilitySettings[K]
+    value: AccessibilitySettings[K],
   ) => void;
   resetSettings: () => void;
   speak: (text: string) => void;
   stopSpeaking: () => void;
 }
 
-const AccessibilityContext = createContext<AccessibilityContextType | null>(null);
+const AccessibilityContext = createContext<AccessibilityContextType | null>(
+  null,
+);
 
 export const useAccessibility = () => {
   const context = useContext(AccessibilityContext);
   if (!context) {
-    throw new Error("useAccessibility must be used within AccessibilityProvider");
+    throw new Error(
+      "useAccessibility must be used within AccessibilityProvider",
+    );
   }
   return context;
 };
 
 // Accessibility Provider Component
-export function AccessibilityProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useState<AccessibilitySettings>(defaultSettings);
+export function AccessibilityProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [settings, setSettings] =
+    useState<AccessibilitySettings>(defaultSettings);
   const [synthesis, setSynthesis] = useState<SpeechSynthesis | null>(null);
 
   // Load settings from localStorage
@@ -102,7 +117,10 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     const root = document.documentElement;
 
     // Font size
-    root.style.setProperty("--accessibility-font-scale", `${settings.fontSize / 100}`);
+    root.style.setProperty(
+      "--accessibility-font-scale",
+      `${settings.fontSize / 100}`,
+    );
     document.body.style.fontSize = `${settings.fontSize}%`;
 
     // High contrast
@@ -122,10 +140,16 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     root.classList.toggle("dark", settings.darkMode);
 
     // Line height
-    root.style.setProperty("--accessibility-line-height", `${settings.lineHeight}`);
+    root.style.setProperty(
+      "--accessibility-line-height",
+      `${settings.lineHeight}`,
+    );
 
     // Letter spacing
-    root.style.setProperty("--accessibility-letter-spacing", `${settings.letterSpacing}em`);
+    root.style.setProperty(
+      "--accessibility-letter-spacing",
+      `${settings.letterSpacing}em`,
+    );
 
     // Focus highlight
     root.classList.toggle("focus-visible-enhanced", settings.focusHighlight);
@@ -135,10 +159,13 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   }, [settings]);
 
   const updateSetting = useCallback(
-    <K extends keyof AccessibilitySettings>(key: K, value: AccessibilitySettings[K]) => {
+    <K extends keyof AccessibilitySettings>(
+      key: K,
+      value: AccessibilitySettings[K],
+    ) => {
       setSettings((prev) => ({ ...prev, [key]: value }));
     },
-    []
+    [],
   );
 
   const resetSettings = useCallback(() => {
@@ -156,7 +183,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
         synthesis.speak(utterance);
       }
     },
-    [synthesis, settings.readAloud]
+    [synthesis, settings.readAloud],
   );
 
   const stopSpeaking = useCallback(() => {
@@ -211,7 +238,8 @@ function ToggleSwitch({
 
 // Accessibility Panel Component
 export function AccessibilityPanel() {
-  const { settings, updateSetting, resetSettings, speak, stopSpeaking } = useAccessibility();
+  const { settings, updateSetting, resetSettings, speak, stopSpeaking } =
+    useAccessibility();
   const [open, setOpen] = useState(false);
 
   const handleSpeak = (text: string) => {
@@ -249,13 +277,20 @@ export function AccessibilityPanel() {
                 <Type className="h-4 w-4" />
                 Font Size
               </Label>
-              <span className="text-sm text-muted-foreground">{settings.fontSize}%</span>
+              <span className="text-sm text-muted-foreground">
+                {settings.fontSize}%
+              </span>
             </div>
             <div className="flex items-center gap-4">
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => updateSetting("fontSize", Math.max(75, settings.fontSize - 10))}
+                onClick={() =>
+                  updateSetting(
+                    "fontSize",
+                    Math.max(75, settings.fontSize - 10),
+                  )
+                }
                 aria-label="Decrease font size"
               >
                 <ZoomOut className="h-4 w-4" />
@@ -266,14 +301,21 @@ export function AccessibilityPanel() {
                 max={200}
                 step={5}
                 value={settings.fontSize}
-                onChange={(e) => updateSetting("fontSize", Number(e.target.value))}
+                onChange={(e) =>
+                  updateSetting("fontSize", Number(e.target.value))
+                }
                 className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-accent"
                 aria-label="Font size slider"
               />
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => updateSetting("fontSize", Math.min(200, settings.fontSize + 10))}
+                onClick={() =>
+                  updateSetting(
+                    "fontSize",
+                    Math.min(200, settings.fontSize + 10),
+                  )
+                }
                 aria-label="Increase font size"
               >
                 <ZoomIn className="h-4 w-4" />
@@ -285,7 +327,9 @@ export function AccessibilityPanel() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-base">Line Height</Label>
-              <span className="text-sm text-muted-foreground">{settings.lineHeight.toFixed(1)}</span>
+              <span className="text-sm text-muted-foreground">
+                {settings.lineHeight.toFixed(1)}
+              </span>
             </div>
             <input
               type="range"
@@ -293,7 +337,9 @@ export function AccessibilityPanel() {
               max={30}
               step={1}
               value={settings.lineHeight * 10}
-              onChange={(e) => updateSetting("lineHeight", Number(e.target.value) / 10)}
+              onChange={(e) =>
+                updateSetting("lineHeight", Number(e.target.value) / 10)
+              }
               className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-accent"
               aria-label="Line height slider"
             />
@@ -303,7 +349,9 @@ export function AccessibilityPanel() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-base">Letter Spacing</Label>
-              <span className="text-sm text-muted-foreground">{settings.letterSpacing.toFixed(2)}em</span>
+              <span className="text-sm text-muted-foreground">
+                {settings.letterSpacing.toFixed(2)}em
+              </span>
             </div>
             <input
               type="range"
@@ -311,7 +359,9 @@ export function AccessibilityPanel() {
               max={20}
               step={1}
               value={settings.letterSpacing * 100}
-              onChange={(e) => updateSetting("letterSpacing", Number(e.target.value) / 100)}
+              onChange={(e) =>
+                updateSetting("letterSpacing", Number(e.target.value) / 100)
+              }
               className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-accent"
               aria-label="Letter spacing slider"
             />
@@ -323,66 +373,95 @@ export function AccessibilityPanel() {
           <div className="space-y-4">
             {/* High Contrast */}
             <div className="flex items-center justify-between">
-              <Label htmlFor="high-contrast" className="flex items-center gap-2 cursor-pointer">
+              <Label
+                htmlFor="high-contrast"
+                className="flex items-center gap-2 cursor-pointer"
+              >
                 <Contrast className="h-4 w-4" />
                 High Contrast Mode
               </Label>
               <ToggleSwitch
                 id="high-contrast"
                 checked={settings.highContrast}
-                onCheckedChange={(checked) => updateSetting("highContrast", checked)}
+                onCheckedChange={(checked) =>
+                  updateSetting("highContrast", checked)
+                }
               />
             </div>
 
             {/* Dark Mode */}
             <div className="flex items-center justify-between">
-              <Label htmlFor="dark-mode" className="flex items-center gap-2 cursor-pointer">
-                {settings.darkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              <Label
+                htmlFor="dark-mode"
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                {settings.darkMode ? (
+                  <Moon className="h-4 w-4" />
+                ) : (
+                  <Sun className="h-4 w-4" />
+                )}
                 Dark Mode
               </Label>
               <ToggleSwitch
                 id="dark-mode"
                 checked={settings.darkMode}
-                onCheckedChange={(checked) => updateSetting("darkMode", checked)}
+                onCheckedChange={(checked) =>
+                  updateSetting("darkMode", checked)
+                }
               />
             </div>
 
             {/* Reduced Motion */}
             <div className="flex items-center justify-between">
-              <Label htmlFor="reduced-motion" className="flex items-center gap-2 cursor-pointer">
+              <Label
+                htmlFor="reduced-motion"
+                className="flex items-center gap-2 cursor-pointer"
+              >
                 <Hand className="h-4 w-4" />
                 Reduced Motion
               </Label>
               <ToggleSwitch
                 id="reduced-motion"
                 checked={settings.reducedMotion}
-                onCheckedChange={(checked) => updateSetting("reducedMotion", checked)}
+                onCheckedChange={(checked) =>
+                  updateSetting("reducedMotion", checked)
+                }
               />
             </div>
 
             {/* Focus Highlight */}
             <div className="flex items-center justify-between">
-              <Label htmlFor="focus-highlight" className="flex items-center gap-2 cursor-pointer">
+              <Label
+                htmlFor="focus-highlight"
+                className="flex items-center gap-2 cursor-pointer"
+              >
                 <Keyboard className="h-4 w-4" />
                 Enhanced Focus Highlight
               </Label>
               <ToggleSwitch
                 id="focus-highlight"
                 checked={settings.focusHighlight}
-                onCheckedChange={(checked) => updateSetting("focusHighlight", checked)}
+                onCheckedChange={(checked) =>
+                  updateSetting("focusHighlight", checked)
+                }
               />
             </div>
 
             {/* Screen Reader Mode */}
             <div className="flex items-center justify-between">
-              <Label htmlFor="screen-reader" className="flex items-center gap-2 cursor-pointer">
+              <Label
+                htmlFor="screen-reader"
+                className="flex items-center gap-2 cursor-pointer"
+              >
                 <Eye className="h-4 w-4" />
                 Screen Reader Optimized
               </Label>
               <ToggleSwitch
                 id="screen-reader"
                 checked={settings.screenReaderMode}
-                onCheckedChange={(checked) => updateSetting("screenReaderMode", checked)}
+                onCheckedChange={(checked) =>
+                  updateSetting("screenReaderMode", checked)
+                }
               />
             </div>
           </div>
@@ -398,8 +477,15 @@ export function AccessibilityPanel() {
 
             {/* Read Aloud */}
             <div className="flex items-center justify-between">
-              <Label htmlFor="read-aloud" className="flex items-center gap-2 cursor-pointer">
-                {settings.readAloud ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              <Label
+                htmlFor="read-aloud"
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                {settings.readAloud ? (
+                  <Volume2 className="h-4 w-4" />
+                ) : (
+                  <VolumeX className="h-4 w-4" />
+                )}
                 Read Aloud (Text-to-Speech)
               </Label>
               <ToggleSwitch
@@ -439,10 +525,24 @@ export function AccessibilityPanel() {
               Keyboard Shortcuts
             </h4>
             <ul className="space-y-1 text-muted-foreground">
-              <li><kbd className="px-1 bg-background rounded">Ctrl</kbd> + <kbd className="px-1 bg-background rounded">+</kbd> Increase font size</li>
-              <li><kbd className="px-1 bg-background rounded">Ctrl</kbd> + <kbd className="px-1 bg-background rounded">-</kbd> Decrease font size</li>
-              <li><kbd className="px-1 bg-background rounded">Tab</kbd> Navigate between elements</li>
-              <li><kbd className="px-1 bg-background rounded">Esc</kbd> Close dialogs</li>
+              <li>
+                <kbd className="px-1 bg-background rounded">Ctrl</kbd> +{" "}
+                <kbd className="px-1 bg-background rounded">+</kbd> Increase
+                font size
+              </li>
+              <li>
+                <kbd className="px-1 bg-background rounded">Ctrl</kbd> +{" "}
+                <kbd className="px-1 bg-background rounded">-</kbd> Decrease
+                font size
+              </li>
+              <li>
+                <kbd className="px-1 bg-background rounded">Tab</kbd> Navigate
+                between elements
+              </li>
+              <li>
+                <kbd className="px-1 bg-background rounded">Esc</kbd> Close
+                dialogs
+              </li>
             </ul>
           </div>
         </div>
@@ -457,13 +557,18 @@ interface VoiceInputButtonProps {
   className?: string;
 }
 
-export function VoiceInputButton({ onResult, className = "" }: VoiceInputButtonProps) {
+export function VoiceInputButton({
+  onResult,
+  className = "",
+}: VoiceInputButtonProps) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setIsSupported("webkitSpeechRecognition" in window || "SpeechRecognition" in window);
+      setIsSupported(
+        "webkitSpeechRecognition" in window || "SpeechRecognition" in window,
+      );
     }
   }, []);
 
@@ -476,7 +581,9 @@ export function VoiceInputButton({ onResult, className = "" }: VoiceInputButtonP
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognitionAPI =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognitionAPI();
     recognition.continuous = false;
     recognition.interimResults = false;
@@ -512,7 +619,11 @@ export function VoiceInputButton({ onResult, className = "" }: VoiceInputButtonP
       onClick={toggleListening}
       aria-label={isListening ? "Stop voice input" : "Start voice input"}
     >
-      {isListening ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+      {isListening ? (
+        <Mic className="h-4 w-4" />
+      ) : (
+        <MicOff className="h-4 w-4" />
+      )}
     </Button>
   );
 }

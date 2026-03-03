@@ -4,10 +4,20 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth, db as firestore } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ExportButton } from "@/components/ui/export-button";
+import { AppShell } from "@/components/ui/app-shell";
+import { ExportReportButton } from "@/components/ui/pdf-export-dialog";
 import Link from "next/link";
 import {
   Users,
@@ -26,6 +36,7 @@ import {
   Zap,
   LogOut,
   Loader2,
+  Activity,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import GeneratePBASButton from "@/components/generatePbas";
@@ -75,7 +86,7 @@ export default function HODDashboardPage() {
         }
 
         const userData = userDoc.data();
-        
+
         if (userData.role !== "hod") {
           router.replace("/dashboard");
           return;
@@ -130,7 +141,7 @@ export default function HODDashboardPage() {
       const usersRef = collection(firestore, "users");
       const q = query(usersRef, where("department", "==", department));
       const querySnapshot = await getDocs(q);
-      
+
       let totalFaculty = 0;
       let totalPublications = 0;
       let totalPatents = 0;
@@ -140,23 +151,23 @@ export default function HODDashboardPage() {
       const yearlyData: Record<string, number> = {};
       const categoryData: Record<string, number> = {
         "Research Papers": 0,
-        "Publications": 0,
-        "Patents": 0,
-        "Projects": 0,
+        Publications: 0,
+        Patents: 0,
+        Projects: 0,
       };
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         if (data.role === "faculty" || data.role === "hod") {
           totalFaculty++;
-          
+
           const publications = data.part_b?.table2?.publications || [];
           const researchPapers = data.part_b?.table2?.researchPapers || [];
           const patents = data.part_b?.patents_policy_awards || [];
           const projects = data.part_b?.table2?.researchProjects || [];
           const consultancy = data.part_b?.table2?.consultancyProjects || [];
           const guidance = data.part_b?.table2?.researchGuidance || [];
-          
+
           const facultyPubs = publications.length + researchPapers.length;
           totalPublications += facultyPubs;
           totalPatents += patents.length;
@@ -169,11 +180,13 @@ export default function HODDashboardPage() {
           categoryData["Projects"] += projects.length + consultancy.length;
 
           // Year-wise analysis
-          [...researchPapers, ...publications, ...patents].forEach((item: any) => {
-            const year = item.year || new Date().getFullYear();
-            yearlyData[year] = (yearlyData[year] || 0) + 1;
-          });
-          
+          [...researchPapers, ...publications, ...patents].forEach(
+            (item: any) => {
+              const year = item.year || new Date().getFullYear();
+              yearlyData[year] = (yearlyData[year] || 0) + 1;
+            },
+          );
+
           facultyList.push({
             id: doc.id,
             name: data.name || data.email,
@@ -190,10 +203,12 @@ export default function HODDashboardPage() {
         .map(([year, count]) => ({ year, count }))
         .sort((a, b) => Number(a.year) - Number(b.year));
 
-      const categoryChartData = Object.entries(categoryData).map(([name, value]) => ({
-        name,
-        value,
-      }));
+      const categoryChartData = Object.entries(categoryData).map(
+        ([name, value]) => ({
+          name,
+          value,
+        }),
+      );
 
       setDeptStats({
         totalFaculty,
@@ -201,10 +216,13 @@ export default function HODDashboardPage() {
         totalPatents,
         totalProjects,
         totalGuidance,
-        facultyList: facultyList.sort((a, b) => b.publications - a.publications),
+        facultyList: facultyList.sort(
+          (a, b) => b.publications - a.publications,
+        ),
         yearData,
         categoryChartData,
-        avgPublicationsPerFaculty: totalFaculty > 0 ? (totalPublications / totalFaculty).toFixed(1) : 0,
+        avgPublicationsPerFaculty:
+          totalFaculty > 0 ? (totalPublications / totalFaculty).toFixed(1) : 0,
       });
     } catch (err) {
       console.error("Error fetching department stats:", err);
@@ -221,7 +239,9 @@ export default function HODDashboardPage() {
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="h-16 w-16 border-4 border-t-transparent border-blue-500 rounded-full"
         />
-        <p className="mt-4 text-slate-600 font-medium">Loading HOD Dashboard...</p>
+        <p className="mt-4 text-slate-600 font-medium">
+          Loading HOD Dashboard...
+        </p>
       </div>
     );
   }
@@ -268,31 +288,63 @@ export default function HODDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-50 pb-20 md:pb-6">
-      <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+    <AppShell
+      user={{
+        email: profile?.email ?? "",
+        full_name: profile?.name ?? profile?.full_name ?? "HOD",
+        role: (profile?.role ?? "hod") as any,
+        department: profile?.department,
+        profile_image_url: profile?.profile_image_url,
+      }}
+      onSignOut={handleLogout}
+    >
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <header className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 border border-slate-200">
+        <header className="glass-card p-4 sm:p-6">
           <div className="flex flex-col space-y-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
-                  <Building2 className="h-5 w-5 text-white" />
+                <div
+                  className="p-2 rounded-lg"
+                  style={{ background: "var(--brand-primary-subtle)" }}
+                >
+                  <Building2
+                    className="h-5 w-5"
+                    style={{ color: "var(--brand-primary)" }}
+                  />
                 </div>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  <h1
+                    className="text-xl sm:text-2xl font-bold"
+                    style={{ color: "var(--text-1)" }}
+                  >
                     HOD Dashboard
                   </h1>
-                  <p className="text-sm text-slate-600">{profile?.name}</p>
+                  <p className="text-sm" style={{ color: "var(--text-3)" }}>
+                    {profile?.name}
+                  </p>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 mt-2">
-                <div className="px-3 py-1 bg-blue-100 rounded-full">
-                  <p className="text-sm font-medium text-blue-700">
+                <div
+                  className="px-3 py-1 rounded-full"
+                  style={{
+                    background: "var(--brand-primary-subtle)",
+                    color: "var(--brand-primary)",
+                  }}
+                >
+                  <p className="text-sm font-medium">
                     {profile?.department} Department
                   </p>
                 </div>
-                <div className="px-3 py-1 bg-purple-100 rounded-full">
-                  <p className="text-sm font-medium text-purple-700">
+                <div
+                  className="px-3 py-1 rounded-full"
+                  style={{
+                    background: "var(--brand-purple-subtle)",
+                    color: "var(--brand-purple)",
+                  }}
+                >
+                  <p className="text-sm font-medium">
                     {profile?.designation || "Head of Department"}
                   </p>
                 </div>
@@ -300,13 +352,23 @@ export default function HODDashboardPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <ExportReportButton
+                department={profile?.department}
+                targetName={`${profile?.department ?? ""} – Dept Data`}
+                label="Export Dept Data"
+              />
+              <Link href="/hod/activity-logs" className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full">
+                  <Activity className="mr-2 h-4 w-4" /> Activity Logs
+                </Button>
+              </Link>
               <Link href="/admin/users" className="w-full sm:w-auto">
                 <Button variant="outline" className="w-full">
                   <Users className="mr-2 h-4 w-4" /> Manage Faculty
                 </Button>
               </Link>
               <Link href="/dashboard/stats" className="w-full sm:w-auto">
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+                <Button className="w-full btn-primary">
                   <BarChart3 className="mr-2 h-4 w-4" /> All Faculty Stats
                 </Button>
               </Link>
@@ -315,13 +377,6 @@ export default function HODDashboardPage() {
                   <Bot className="mr-2 h-4 w-4" /> AI Assistant
                 </Button>
               </Link>
-              <Button 
-                variant="outline" 
-                className="w-full sm:w-auto border-red-200 hover:bg-red-50 hover:text-red-700"
-                onClick={handleLogout}
-              >
-                <LogOut className="mr-2 h-4 w-4" /> Logout
-              </Button>
             </div>
           </div>
         </header>
@@ -343,32 +398,46 @@ export default function HODDashboardPage() {
                   <Target className="h-5 w-5 text-blue-600" />
                   My Performance Metrics
                 </CardTitle>
-                <p className="text-xs text-slate-600 mt-1">Your individual research and academic contributions</p>
+                <p className="text-xs text-slate-600 mt-1">
+                  Your individual research and academic contributions
+                </p>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600">{personalMetrics?.totalResearchPapers || 0}</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {personalMetrics?.totalResearchPapers || 0}
+                    </p>
                     <p className="text-xs text-slate-600">Papers</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-purple-600">{personalMetrics?.totalPublications || 0}</p>
+                    <p className="text-2xl font-bold text-purple-600">
+                      {personalMetrics?.totalPublications || 0}
+                    </p>
                     <p className="text-xs text-slate-600">Books</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-cyan-600">{personalMetrics?.totalPatents || 0}</p>
+                    <p className="text-2xl font-bold text-cyan-600">
+                      {personalMetrics?.totalPatents || 0}
+                    </p>
                     <p className="text-xs text-slate-600">Patents</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-orange-600">{personalMetrics?.totalProjects || 0}</p>
+                    <p className="text-2xl font-bold text-orange-600">
+                      {personalMetrics?.totalProjects || 0}
+                    </p>
                     <p className="text-xs text-slate-600">Projects</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-pink-600">{personalMetrics?.totalGuidance || 0}</p>
+                    <p className="text-2xl font-bold text-pink-600">
+                      {personalMetrics?.totalGuidance || 0}
+                    </p>
                     <p className="text-xs text-slate-600">Students</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600">{personalMetrics?.totalOutputs || 0}</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {personalMetrics?.totalOutputs || 0}
+                    </p>
                     <p className="text-xs text-slate-600">Total</p>
                   </div>
                 </div>
@@ -377,92 +446,115 @@ export default function HODDashboardPage() {
 
             {/* Department Quick Stats */}
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-slate-700 px-1">Department Performance Overview</h3>
-              <p className="text-xs text-slate-600 px-1">Real-time statistics for {profile?.department} Department faculty</p>
+              <h3 className="text-sm font-semibold text-slate-700 px-1">
+                Department Performance Overview
+              </h3>
+              <p className="text-xs text-slate-600 px-1">
+                Real-time statistics for {profile?.department} Department
+                faculty
+              </p>
             </div>
             {loadingStats ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                <span className="ml-2 text-slate-600">Loading department statistics...</span>
+                <span className="ml-2 text-slate-600">
+                  Loading department statistics...
+                </span>
               </div>
             ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <Card className="border-slate-200 shadow-sm hover:shadow-lg transition-all bg-gradient-to-br from-blue-50 to-white">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs sm:text-sm text-slate-600 mb-1">Faculty</p>
-                      <p className="text-2xl sm:text-3xl font-bold text-blue-600">
-                        {deptStats?.totalFaculty || 0}
-                      </p>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <Card className="border-slate-200 shadow-sm hover:shadow-lg transition-all bg-gradient-to-br from-blue-50 to-white">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs sm:text-sm text-slate-600 mb-1">
+                          Faculty
+                        </p>
+                        <p className="text-2xl sm:text-3xl font-bold text-blue-600">
+                          {deptStats?.totalFaculty || 0}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-blue-100 rounded-xl">
+                        <Users className="h-6 w-6 text-blue-600" />
+                      </div>
                     </div>
-                    <div className="p-3 bg-blue-100 rounded-xl">
-                      <Users className="h-6 w-6 text-blue-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card className="border-slate-200 shadow-sm hover:shadow-lg transition-all bg-gradient-to-br from-purple-50 to-white">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs sm:text-sm text-slate-600 mb-1">Publications</p>
-                      <p className="text-2xl sm:text-3xl font-bold text-purple-600">
-                        {deptStats?.totalPublications || 0}
-                      </p>
+                <Card className="border-slate-200 shadow-sm hover:shadow-lg transition-all bg-gradient-to-br from-purple-50 to-white">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs sm:text-sm text-slate-600 mb-1">
+                          Publications
+                        </p>
+                        <p className="text-2xl sm:text-3xl font-bold text-purple-600">
+                          {deptStats?.totalPublications || 0}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-purple-100 rounded-xl">
+                        <BookOpen className="h-6 w-6 text-purple-600" />
+                      </div>
                     </div>
-                    <div className="p-3 bg-purple-100 rounded-xl">
-                      <BookOpen className="h-6 w-6 text-purple-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card className="border-slate-200 shadow-sm hover:shadow-lg transition-all bg-gradient-to-br from-cyan-50 to-white">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs sm:text-sm text-slate-600 mb-1">Patents</p>
-                      <p className="text-2xl sm:text-3xl font-bold text-cyan-600">
-                        {deptStats?.totalPatents || 0}
-                      </p>
+                <Card className="border-slate-200 shadow-sm hover:shadow-lg transition-all bg-gradient-to-br from-cyan-50 to-white">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs sm:text-sm text-slate-600 mb-1">
+                          Patents
+                        </p>
+                        <p className="text-2xl sm:text-3xl font-bold text-cyan-600">
+                          {deptStats?.totalPatents || 0}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-cyan-100 rounded-xl">
+                        <Award className="h-6 w-6 text-cyan-600" />
+                      </div>
                     </div>
-                    <div className="p-3 bg-cyan-100 rounded-xl">
-                      <Award className="h-6 w-6 text-cyan-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card className="border-slate-200 shadow-sm hover:shadow-lg transition-all bg-gradient-to-br from-orange-50 to-white">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs sm:text-sm text-slate-600 mb-1">Avg/Faculty</p>
-                      <p className="text-2xl sm:text-3xl font-bold text-orange-600">
-                        {deptStats?.avgPublicationsPerFaculty || 0}
-                      </p>
+                <Card className="border-slate-200 shadow-sm hover:shadow-lg transition-all bg-gradient-to-br from-orange-50 to-white">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs sm:text-sm text-slate-600 mb-1">
+                          Avg/Faculty
+                        </p>
+                        <p className="text-2xl sm:text-3xl font-bold text-orange-600">
+                          {deptStats?.avgPublicationsPerFaculty || 0}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-orange-100 rounded-xl">
+                        <TrendingUp className="h-6 w-6 text-orange-600" />
+                      </div>
                     </div>
-                    <div className="p-3 bg-orange-100 rounded-xl">
-                      <TrendingUp className="h-6 w-6 text-orange-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  </CardContent>
+                </Card>
+              </div>
             )}
 
             {/* Charts Row */}
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-slate-700 px-1">Visual Analytics</h3>
-              <p className="text-xs text-slate-600 px-1">Graphical representation of department research output</p>
+              <h3 className="text-sm font-semibold text-slate-700 px-1">
+                Visual Analytics
+              </h3>
+              <p className="text-xs text-slate-600 px-1">
+                Graphical representation of department research output
+              </p>
             </div>
             <div className="grid lg:grid-cols-2 gap-4">
               <Card className="border-slate-200 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-base sm:text-lg">Research Output by Category</CardTitle>
-                  <p className="text-xs text-slate-600 mt-1">Distribution of publications, patents, and projects</p>
+                  <CardTitle className="text-base sm:text-lg">
+                    Research Output by Category
+                  </CardTitle>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Distribution of publications, patents, and projects
+                  </p>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={250}>
@@ -477,9 +569,14 @@ export default function HODDashboardPage() {
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {(deptStats?.categoryChartData || []).map((_: any, index: number) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
+                        {(deptStats?.categoryChartData || []).map(
+                          (_: any, index: number) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
+                          ),
+                        )}
                       </Pie>
                       <Tooltip />
                     </PieChart>
@@ -489,8 +586,12 @@ export default function HODDashboardPage() {
 
               <Card className="border-slate-200 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-base sm:text-lg">Publication Trends Over Time</CardTitle>
-                  <p className="text-xs text-slate-600 mt-1">Year-wise research output growth analysis</p>
+                  <CardTitle className="text-base sm:text-lg">
+                    Publication Trends Over Time
+                  </CardTitle>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Year-wise research output growth analysis
+                  </p>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={250}>
@@ -500,7 +601,12 @@ export default function HODDashboardPage() {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Line type="monotone" dataKey="count" stroke="#6366f1" strokeWidth={2} />
+                      <Line
+                        type="monotone"
+                        dataKey="count"
+                        stroke="#6366f1"
+                        strokeWidth={2}
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -512,8 +618,12 @@ export default function HODDashboardPage() {
           <TabsContent value="department" className="space-y-4 mt-4">
             {/* Section Label */}
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-slate-700 px-1">Department Faculty Rankings</h3>
-              <p className="text-xs text-slate-600 px-1">Ranked by total publications and research output</p>
+              <h3 className="text-sm font-semibold text-slate-700 px-1">
+                Department Faculty Rankings
+              </h3>
+              <p className="text-xs text-slate-600 px-1">
+                Ranked by total publications and research output
+              </p>
             </div>
 
             {/* Top Performers */}
@@ -526,39 +636,51 @@ export default function HODDashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {deptStats?.facultyList.slice(0, 5).map((faculty: any, index: number) => (
-                    <motion.div
-                      key={faculty.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-slate-50 via-white to-slate-50 border border-slate-200 hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-sm">
-                          {index + 1}
+                  {deptStats?.facultyList
+                    .slice(0, 5)
+                    .map((faculty: any, index: number) => (
+                      <motion.div
+                        key={faculty.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-slate-50 via-white to-slate-50 border border-slate-200 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-sm">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm sm:text-base text-slate-900">
+                              {faculty.name}
+                            </p>
+                            <p className="text-xs sm:text-sm text-slate-600">
+                              {faculty.email}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-sm sm:text-base text-slate-900">{faculty.name}</p>
-                          <p className="text-xs sm:text-sm text-slate-600">{faculty.email}</p>
+                        <div className="flex gap-4 text-right">
+                          <div>
+                            <p className="text-lg sm:text-xl font-bold text-purple-600">
+                              {faculty.publications}
+                            </p>
+                            <p className="text-xs text-slate-600">Pubs</p>
+                          </div>
+                          <div>
+                            <p className="text-lg sm:text-xl font-bold text-cyan-600">
+                              {faculty.patents}
+                            </p>
+                            <p className="text-xs text-slate-600">Patents</p>
+                          </div>
+                          <div>
+                            <p className="text-lg sm:text-xl font-bold text-orange-600">
+                              {faculty.projects}
+                            </p>
+                            <p className="text-xs text-slate-600">Projects</p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex gap-4 text-right">
-                        <div>
-                          <p className="text-lg sm:text-xl font-bold text-purple-600">{faculty.publications}</p>
-                          <p className="text-xs text-slate-600">Pubs</p>
-                        </div>
-                        <div>
-                          <p className="text-lg sm:text-xl font-bold text-cyan-600">{faculty.patents}</p>
-                          <p className="text-xs text-slate-600">Patents</p>
-                        </div>
-                        <div>
-                          <p className="text-lg sm:text-xl font-bold text-orange-600">{faculty.projects}</p>
-                          <p className="text-xs text-slate-600">Projects</p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    ))}
                 </div>
               </CardContent>
             </Card>
@@ -566,7 +688,9 @@ export default function HODDashboardPage() {
             {/* All Faculty List */}
             <Card className="border-slate-200 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-lg sm:text-xl">All Department Faculty</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">
+                  All Department Faculty
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -579,20 +703,30 @@ export default function HODDashboardPage() {
                       className="flex items-center justify-between p-3 rounded-lg bg-white border border-slate-200"
                     >
                       <div>
-                        <p className="font-medium text-sm text-slate-900">{faculty.name}</p>
-                        <p className="text-xs text-slate-500">{faculty.email}</p>
+                        <p className="font-medium text-sm text-slate-900">
+                          {faculty.name}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {faculty.email}
+                        </p>
                       </div>
                       <div className="flex gap-3 text-right text-xs sm:text-sm">
                         <div>
-                          <p className="font-bold text-purple-600">{faculty.publications}</p>
+                          <p className="font-bold text-purple-600">
+                            {faculty.publications}
+                          </p>
                           <p className="text-slate-600">Pubs</p>
                         </div>
                         <div>
-                          <p className="font-bold text-cyan-600">{faculty.patents}</p>
+                          <p className="font-bold text-cyan-600">
+                            {faculty.patents}
+                          </p>
                           <p className="text-slate-600">Patents</p>
                         </div>
                         <div>
-                          <p className="font-bold text-orange-600">{faculty.guidance}</p>
+                          <p className="font-bold text-orange-600">
+                            {faculty.guidance}
+                          </p>
                           <p className="text-slate-600">Students</p>
                         </div>
                       </div>
@@ -625,7 +759,9 @@ export default function HODDashboardPage() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-slate-600 mb-1">Publications</p>
+                      <p className="text-xs text-slate-600 mb-1">
+                        Publications
+                      </p>
                       <p className="text-2xl font-bold text-purple-600">
                         {personalMetrics?.totalPublications || 0}
                       </p>
@@ -667,7 +803,9 @@ export default function HODDashboardPage() {
             {/* PBAS Form Sections */}
             <Card className="border-slate-200 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-lg sm:text-xl">PBAS Data Entry</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">
+                  PBAS Data Entry
+                </CardTitle>
                 <p className="text-sm text-slate-600">
                   Click on any section to add or update your PBAS information
                 </p>
@@ -716,6 +854,6 @@ export default function HODDashboardPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AppShell>
   );
 }

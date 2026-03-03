@@ -9,48 +9,48 @@ export async function POST(request: NextRequest) {
     const { email } = await request.json();
 
     if (!email) {
-      return NextResponse.json(
-        { error: "Email is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
     // Try to send email if Resend is configured
     let emailSent = false;
-    
+
     if (process.env.RESEND_API_KEY) {
       try {
         // Dynamic import to avoid build errors when resend is not installed
         const { Resend } = await import("resend");
         const resend = new Resend(process.env.RESEND_API_KEY);
-        
+
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || "Shikshak Sarthi <noreply@shikshaksarthi.in>",
+          from:
+            process.env.RESEND_FROM_EMAIL ||
+            "Shikshak Sarthi <noreply@shikshaksarthi.in>",
           to: email,
           subject: "Password Reset Request - Shikshak Sarthi",
           html: getPasswordResetEmailTemplate(),
         });
-        
+
         emailSent = true;
       } catch (sendError) {
-        console.log("Email sending failed (Resend may not be installed):", sendError);
+        console.log(
+          "Email sending failed (Resend may not be installed):",
+          sendError,
+        );
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: emailSent 
-        ? "Password reset notification sent" 
+      message: emailSent
+        ? "Password reset notification sent"
         : "Password reset initiated via Firebase",
       emailSent,
     });
   } catch (error: unknown) {
     console.error("Password reset email error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to process request";
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to process request";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 

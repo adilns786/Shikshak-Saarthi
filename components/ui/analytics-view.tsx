@@ -24,7 +24,13 @@ import {
   PolarRadiusAxis,
   Radar,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -57,12 +63,24 @@ interface AnalyticsViewProps {
   departmentData?: any[];
 }
 
-const COLORS = ["#4f46e5", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#f97316", "#84cc16"];
+const COLORS = [
+  "#4f46e5",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#8b5cf6",
+  "#06b6d4",
+  "#f97316",
+  "#84cc16",
+];
 
-export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProps) {
+export function AnalyticsView({
+  profileData,
+  departmentData,
+}: AnalyticsViewProps) {
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [selectedView, setSelectedView] = useState<string>("overview");
-  
+
   const partB = profileData?.part_b || profileData || {};
   const partA = profileData?.part_a || {};
 
@@ -99,10 +117,14 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
   const categoryData = [
     { name: "Research Papers", value: researchPapers.length, color: "#4f46e5" },
     { name: "Publications", value: publications.length, color: "#10b981" },
-    { name: "Projects", value: projects.length + consultancy.length, color: "#f59e0b" },
+    {
+      name: "Projects",
+      value: projects.length + consultancy.length,
+      color: "#f59e0b",
+    },
     { name: "Patents", value: patents.length, color: "#ef4444" },
     { name: "Invited Lectures", value: lectures.length, color: "#8b5cf6" },
-  ].filter(item => item.value > 0);
+  ].filter((item) => item.value > 0);
 
   // Indexing distribution
   const indexingData: { [key: string]: number } = {};
@@ -111,29 +133,73 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
       indexingData[index] = (indexingData[index] || 0) + 1;
     });
   });
-  const indexingChartData = Object.entries(indexingData).map(([name, value]) => ({ name, value }));
+  const indexingChartData = Object.entries(indexingData).map(
+    ([name, value]) => ({ name, value }),
+  );
 
   // Project funding data
   const fundingByAgency: { [key: string]: number } = {};
   projects.forEach((project: any) => {
     const agency = project.funding_agency || "Unknown";
-    const amount = parseFloat(String(project.amount || 0).replace(/[^0-9.-]/g, "")) || 0;
+    const amount =
+      parseFloat(String(project.amount || 0).replace(/[^0-9.-]/g, "")) || 0;
     fundingByAgency[agency] = (fundingByAgency[agency] || 0) + amount;
   });
   const fundingChartData = Object.entries(fundingByAgency)
-    .map(([name, value]) => ({ name: name.split("(")[0].trim(), value: value / 100000 }))
+    .map(([name, value]) => ({
+      name: name.split("(")[0].trim(),
+      value: value / 100000,
+    }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 6);
 
   // Radar chart data for overall performance
-  const maxValues = { papers: 10, projects: 5, patents: 3, guidance: 5, lectures: 10, courses: 10 };
+  const maxValues = {
+    papers: 10,
+    projects: 5,
+    patents: 3,
+    guidance: 5,
+    lectures: 10,
+    courses: 10,
+  };
   const radarData = [
-    { subject: "Publications", A: Math.min(100, ((researchPapers.length + publications.length) / maxValues.papers) * 100), fullMark: 100 },
-    { subject: "Projects", A: Math.min(100, ((projects.length + consultancy.length) / maxValues.projects) * 100), fullMark: 100 },
-    { subject: "Patents", A: Math.min(100, (patents.length / maxValues.patents) * 100), fullMark: 100 },
-    { subject: "Guidance", A: Math.min(100, (guidance.length / maxValues.guidance) * 100), fullMark: 100 },
-    { subject: "Lectures", A: Math.min(100, (lectures.length / maxValues.lectures) * 100), fullMark: 100 },
-    { subject: "FDP/Courses", A: Math.min(100, (courses.length / maxValues.courses) * 100), fullMark: 100 },
+    {
+      subject: "Publications",
+      A: Math.min(
+        100,
+        ((researchPapers.length + publications.length) / maxValues.papers) *
+          100,
+      ),
+      fullMark: 100,
+    },
+    {
+      subject: "Projects",
+      A: Math.min(
+        100,
+        ((projects.length + consultancy.length) / maxValues.projects) * 100,
+      ),
+      fullMark: 100,
+    },
+    {
+      subject: "Patents",
+      A: Math.min(100, (patents.length / maxValues.patents) * 100),
+      fullMark: 100,
+    },
+    {
+      subject: "Guidance",
+      A: Math.min(100, (guidance.length / maxValues.guidance) * 100),
+      fullMark: 100,
+    },
+    {
+      subject: "Lectures",
+      A: Math.min(100, (lectures.length / maxValues.lectures) * 100),
+      fullMark: 100,
+    },
+    {
+      subject: "FDP/Courses",
+      A: Math.min(100, (courses.length / maxValues.courses) * 100),
+      fullMark: 100,
+    },
   ];
 
   // Calculate API Score breakdown
@@ -145,7 +211,8 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
     // Category III: Research
     researchPapers.forEach((p: any) => {
       let score = 10;
-      if (p.indexed_in?.includes("SCI") || p.indexed_in?.includes("SCIE")) score = 15;
+      if (p.indexed_in?.includes("SCI") || p.indexed_in?.includes("SCIE"))
+        score = 15;
       else if (p.indexed_in?.includes("Scopus")) score = 12;
       if (p.is_first_author) score += 2;
       categoryIII += score;
@@ -186,38 +253,69 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
     // Category I: Teaching (placeholder)
     categoryI = 80; // Default score based on teaching hours
 
-    return { categoryI, categoryII, categoryIII, total: categoryI + categoryII + categoryIII };
+    return {
+      categoryI,
+      categoryII,
+      categoryIII,
+      total: categoryI + categoryII + categoryIII,
+    };
   };
 
   const apiScore = calculateAPIScore();
 
   const apiScoreData = [
-    { name: "Category I\n(Teaching)", value: apiScore.categoryI, target: 125, color: "#4f46e5" },
-    { name: "Category II\n(Extension)", value: apiScore.categoryII, target: 75, color: "#10b981" },
-    { name: "Category III\n(Research)", value: apiScore.categoryIII, target: 200, color: "#f59e0b" },
+    {
+      name: "Category I\n(Teaching)",
+      value: apiScore.categoryI,
+      target: 125,
+      color: "#4f46e5",
+    },
+    {
+      name: "Category II\n(Extension)",
+      value: apiScore.categoryII,
+      target: 75,
+      color: "#10b981",
+    },
+    {
+      name: "Category III\n(Research)",
+      value: apiScore.categoryIII,
+      target: 200,
+      color: "#f59e0b",
+    },
   ];
 
   // Research status breakdown
-  const phdStatus = guidance.filter((g: any) => g.degree === "Ph.D.").reduce((acc: any, g: any) => {
-    acc[g.status] = (acc[g.status] || 0) + 1;
-    return acc;
-  }, {});
-  const guidanceStatusData = Object.entries(phdStatus).map(([name, value]) => ({ name, value }));
+  const phdStatus = guidance
+    .filter((g: any) => g.degree === "Ph.D.")
+    .reduce((acc: any, g: any) => {
+      acc[g.status] = (acc[g.status] || 0) + 1;
+      return acc;
+    }, {});
+  const guidanceStatusData = Object.entries(phdStatus).map(([name, value]) => ({
+    name,
+    value,
+  }));
 
   // Patent status breakdown
   const patentStatus = patents.reduce((acc: any, p: any) => {
     acc[p.status] = (acc[p.status] || 0) + 1;
     return acc;
   }, {});
-  const patentStatusData = Object.entries(patentStatus).map(([name, value]) => ({ name, value }));
+  const patentStatusData = Object.entries(patentStatus).map(
+    ([name, value]) => ({ name, value }),
+  );
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Analytics Dashboard</h2>
-          <p className="text-muted-foreground">Comprehensive view of your academic performance</p>
+          <h2 className="text-2xl font-bold text-foreground">
+            Analytics Dashboard
+          </h2>
+          <p className="text-muted-foreground">
+            Comprehensive view of your academic performance
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <Select value={selectedYear} onValueChange={setSelectedYear}>
@@ -227,7 +325,9 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
             <SelectContent>
               <SelectItem value="all">All Years</SelectItem>
               {yearChartData.map((d) => (
-                <SelectItem key={d.year} value={d.year}>{d.year}</SelectItem>
+                <SelectItem key={d.year} value={d.year}>
+                  {d.year}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -278,7 +378,9 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
             <Briefcase className="h-4 w-4 text-amber-500" />
             <span className="text-xs text-muted-foreground">Projects</span>
           </div>
-          <p className="text-2xl font-bold">{projects.length + consultancy.length}</p>
+          <p className="text-2xl font-bold">
+            {projects.length + consultancy.length}
+          </p>
         </motion.div>
 
         <motion.div
@@ -302,9 +404,13 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
         >
           <div className="flex items-center gap-2 mb-2">
             <Users className="h-4 w-4 text-purple-500" />
-            <span className="text-xs text-muted-foreground">Ph.D. Guidance</span>
+            <span className="text-xs text-muted-foreground">
+              Ph.D. Guidance
+            </span>
           </div>
-          <p className="text-2xl font-bold">{guidance.filter((g: any) => g.degree === "Ph.D.").length}</p>
+          <p className="text-2xl font-bold">
+            {guidance.filter((g: any) => g.degree === "Ph.D.").length}
+          </p>
         </motion.div>
 
         <motion.div
@@ -330,7 +436,9 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
               <BarChart3 className="h-5 w-5 text-indigo-500" />
               Publication Timeline
             </CardTitle>
-            <CardDescription>Year-wise research output and citations</CardDescription>
+            <CardDescription>
+              Year-wise research output and citations
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {yearChartData.length > 0 ? (
@@ -339,8 +447,16 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
                   <BarChart data={yearChartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis dataKey="year" tick={{ fontSize: 12 }} />
-                    <YAxis yAxisId="left" orientation="left" tick={{ fontSize: 12 }} />
-                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
+                    <YAxis
+                      yAxisId="left"
+                      orientation="left"
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      tick={{ fontSize: 12 }}
+                    />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: "white",
@@ -349,8 +465,20 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
                       }}
                     />
                     <Legend />
-                    <Bar yAxisId="left" dataKey="papers" name="Papers" fill="#4f46e5" radius={[4, 4, 0, 0]} />
-                    <Bar yAxisId="right" dataKey="citations" name="Citations" fill="#10b981" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      yAxisId="left"
+                      dataKey="papers"
+                      name="Papers"
+                      fill="#4f46e5"
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                      yAxisId="right"
+                      dataKey="citations"
+                      name="Citations"
+                      fill="#10b981"
+                      radius={[4, 4, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -386,7 +514,10 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
                       dataKey="value"
                     >
                       {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.color || COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -409,7 +540,9 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
               <Activity className="h-5 w-5 text-amber-500" />
               Performance Profile
             </CardTitle>
-            <CardDescription>Multi-dimensional performance view</CardDescription>
+            <CardDescription>
+              Multi-dimensional performance view
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -417,7 +550,11 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
                 <RadarChart data={radarData}>
                   <PolarGrid />
                   <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11 }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 10 }} />
+                  <PolarRadiusAxis
+                    angle={30}
+                    domain={[0, 100]}
+                    tick={{ fontSize: 10 }}
+                  />
                   <Radar
                     name="Performance"
                     dataKey="A"
@@ -439,7 +576,9 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
               <Target className="h-5 w-5 text-red-500" />
               API Score Breakdown
             </CardTitle>
-            <CardDescription>Score vs. Target for CAS promotion</CardDescription>
+            <CardDescription>
+              Score vs. Target for CAS promotion
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -447,11 +586,26 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
                 <BarChart data={apiScoreData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis type="number" tick={{ fontSize: 12 }} />
-                  <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 10 }} />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    width={80}
+                    tick={{ fontSize: 10 }}
+                  />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="value" name="Your Score" fill="#4f46e5" radius={[0, 4, 4, 0]} />
-                  <Bar dataKey="target" name="Target" fill="#e5e7eb" radius={[0, 4, 4, 0]} />
+                  <Bar
+                    dataKey="value"
+                    name="Your Score"
+                    fill="#4f46e5"
+                    radius={[0, 4, 4, 0]}
+                  />
+                  <Bar
+                    dataKey="target"
+                    name="Target"
+                    fill="#e5e7eb"
+                    radius={[0, 4, 4, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -480,7 +634,10 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
                       label={({ name, value }) => `${name}: ${value}`}
                     >
                       {indexingChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -498,7 +655,9 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
         {/* Project Funding */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Project Funding (₹ Lakhs)</CardTitle>
+            <CardTitle className="text-base">
+              Project Funding (₹ Lakhs)
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {fundingChartData.length > 0 ? (
@@ -508,7 +667,9 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                     <YAxis tick={{ fontSize: 10 }} />
-                    <Tooltip formatter={(value) => [`₹${value} L`, "Funding"]} />
+                    <Tooltip
+                      formatter={(value) => [`₹${value} L`, "Funding"]}
+                    />
                     <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -540,7 +701,10 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
                       label={({ name, value }) => `${name}: ${value}`}
                     >
                       {guidanceStatusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -567,32 +731,67 @@ export function AnalyticsView({ profileData, departmentData }: AnalyticsViewProp
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <div className="p-4 bg-muted/30 rounded-lg text-center">
-              <p className="text-xs text-muted-foreground mb-1">Total Citations</p>
-              <p className="text-xl font-bold">{researchPapers.reduce((sum: number, p: any) => sum + (p.citations || 0), 0)}</p>
-            </div>
-            <div className="p-4 bg-muted/30 rounded-lg text-center">
-              <p className="text-xs text-muted-foreground mb-1">First Author Papers</p>
-              <p className="text-xl font-bold">{researchPapers.filter((p: any) => p.is_first_author).length}</p>
-            </div>
-            <div className="p-4 bg-muted/30 rounded-lg text-center">
-              <p className="text-xs text-muted-foreground mb-1">SCI/Scopus Papers</p>
+              <p className="text-xs text-muted-foreground mb-1">
+                Total Citations
+              </p>
               <p className="text-xl font-bold">
-                {researchPapers.filter((p: any) => 
-                  p.indexed_in?.some((i: string) => i.toLowerCase().includes('sci') || i.toLowerCase().includes('scopus'))
-                ).length}
+                {researchPapers.reduce(
+                  (sum: number, p: any) => sum + (p.citations || 0),
+                  0,
+                )}
               </p>
             </div>
             <div className="p-4 bg-muted/30 rounded-lg text-center">
-              <p className="text-xs text-muted-foreground mb-1">Major Projects</p>
-              <p className="text-xl font-bold">{projects.filter((p: any) => p.project_type === "Major").length}</p>
+              <p className="text-xs text-muted-foreground mb-1">
+                First Author Papers
+              </p>
+              <p className="text-xl font-bold">
+                {researchPapers.filter((p: any) => p.is_first_author).length}
+              </p>
             </div>
             <div className="p-4 bg-muted/30 rounded-lg text-center">
-              <p className="text-xs text-muted-foreground mb-1">Granted Patents</p>
-              <p className="text-xl font-bold">{patents.filter((p: any) => p.status === "Granted").length}</p>
+              <p className="text-xs text-muted-foreground mb-1">
+                SCI/Scopus Papers
+              </p>
+              <p className="text-xl font-bold">
+                {
+                  researchPapers.filter((p: any) =>
+                    p.indexed_in?.some(
+                      (i: string) =>
+                        i.toLowerCase().includes("sci") ||
+                        i.toLowerCase().includes("scopus"),
+                    ),
+                  ).length
+                }
+              </p>
             </div>
             <div className="p-4 bg-muted/30 rounded-lg text-center">
-              <p className="text-xs text-muted-foreground mb-1">Awarded Ph.D.s</p>
-              <p className="text-xl font-bold">{guidance.filter((g: any) => g.status === "Awarded" && g.degree === "Ph.D.").length}</p>
+              <p className="text-xs text-muted-foreground mb-1">
+                Major Projects
+              </p>
+              <p className="text-xl font-bold">
+                {projects.filter((p: any) => p.project_type === "Major").length}
+              </p>
+            </div>
+            <div className="p-4 bg-muted/30 rounded-lg text-center">
+              <p className="text-xs text-muted-foreground mb-1">
+                Granted Patents
+              </p>
+              <p className="text-xl font-bold">
+                {patents.filter((p: any) => p.status === "Granted").length}
+              </p>
+            </div>
+            <div className="p-4 bg-muted/30 rounded-lg text-center">
+              <p className="text-xs text-muted-foreground mb-1">
+                Awarded Ph.D.s
+              </p>
+              <p className="text-xl font-bold">
+                {
+                  guidance.filter(
+                    (g: any) => g.status === "Awarded" && g.degree === "Ph.D.",
+                  ).length
+                }
+              </p>
             </div>
           </div>
         </CardContent>

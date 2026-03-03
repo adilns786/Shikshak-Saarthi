@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     if (!email || !name || !role || !department) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -67,18 +67,47 @@ export async function POST(request: NextRequest) {
     });
 
     // Create user document in Firestore
-    await db.collection("users").doc(userRecord.uid).set({
-      email,
-      name,
-      full_name: name,
-      role,
-      department,
-      designation: designation || "Faculty",
-      employee_id: employee_id || "",
-      phone: phone || "",
-      created_at: new Date().toISOString(),
-      is_active: true,
-    });
+    await db
+      .collection("users")
+      .doc(userRecord.uid)
+      .set({
+        email,
+        name,
+        full_name: name,
+        role,
+        department,
+        designation: designation || "Faculty",
+        employee_id: employee_id || "",
+        phone: phone || "",
+        created_at: new Date().toISOString(),
+        is_active: true,
+      });
+
+    // Send onboarding email
+    try {
+      const notificationType =
+        role === "hod" ? "hod_account_created" : "account_created";
+      await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/email/send-notification`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            recipientEmail: email,
+            recipientName: name,
+            type: notificationType,
+            data: {
+              tempPassword: password,
+              department: department,
+            },
+          }),
+        },
+      );
+      console.log(`✅ Onboarding email sent to ${email}`);
+    } catch (emailError) {
+      console.error("Failed to send onboarding email:", emailError);
+      // Don't fail the whole operation if email fails
+    }
 
     return NextResponse.json({
       success: true,
@@ -89,7 +118,8 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: unknown) {
     console.error("Create user error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to create user";
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to create user";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
@@ -102,7 +132,7 @@ export async function PATCH(request: NextRequest) {
     if (!userId || !role) {
       return NextResponse.json(
         { error: "Missing required fields: userId, role" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -129,7 +159,8 @@ export async function PATCH(request: NextRequest) {
     });
   } catch (error: unknown) {
     console.error("Update user error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to update user";
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to update user";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
@@ -142,7 +173,7 @@ export async function DELETE(request: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         { error: "Missing userId parameter" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -164,7 +195,8 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error: unknown) {
     console.error("Delete user error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to delete user";
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to delete user";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

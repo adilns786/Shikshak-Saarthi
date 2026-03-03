@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
       setSuccess(true);
     } catch (error: any) {
       console.error("Password reset error:", error);
-      
+
       // Handle specific Firebase errors
       switch (error.code) {
         case "auth/user-not-found":
@@ -64,7 +64,9 @@ export default function ForgotPasswordPage() {
           setError("Too many attempts. Please try again later.");
           break;
         default:
-          setError(error.message || "Failed to send reset email. Please try again.");
+          setError(
+            error.message || "Failed to send reset email. Please try again.",
+          );
       }
     } finally {
       setIsLoading(false);
@@ -98,22 +100,31 @@ export default function ForgotPasswordPage() {
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10">
                 <Mail className="h-8 w-8 text-accent" />
               </div>
-              <CardTitle className="text-2xl font-display text-primary">Check Your Email</CardTitle>
-              <CardDescription className="mt-2">Password reset instructions sent</CardDescription>
+              <CardTitle className="text-2xl font-display text-primary">
+                Check Your Email
+              </CardTitle>
+              <CardDescription className="mt-2">
+                Password reset instructions sent
+              </CardDescription>
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                We've sent password reset instructions to <strong>{email}</strong>. Please check your email and follow
-                the link to reset your password.
+                We've sent password reset instructions to{" "}
+                <strong>{email}</strong>. Please check your email and follow the
+                link to reset your password.
               </p>
-              <Button asChild variant="outline" className="w-full bg-transparent">
+              <Button
+                asChild
+                variant="outline"
+                className="w-full bg-transparent"
+              >
                 <Link href="/auth/login">Return to Login</Link>
               </Button>
             </CardContent>
           </Card>
         </motion.div>
       </div>
-    )
+    );
   }
 
   return (
@@ -156,8 +167,12 @@ export default function ForgotPasswordPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
-                <CardTitle className="text-2xl font-display text-primary">Reset Password</CardTitle>
-                <CardDescription className="mt-2">Enter your email to receive reset instructions</CardDescription>
+                <CardTitle className="text-2xl font-display text-primary">
+                  Reset Password
+                </CardTitle>
+                <CardDescription className="mt-2">
+                  Enter your email to receive reset instructions
+                </CardDescription>
               </motion.div>
             </CardHeader>
             <CardContent>
@@ -196,7 +211,11 @@ export default function ForgotPasswordPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.5 }}
                 >
-                  <Button type="submit" className="w-full group" disabled={isLoading}>
+                  <Button
+                    type="submit"
+                    className="w-full group"
+                    disabled={isLoading}
+                  >
                     {isLoading ? (
                       <div className="flex items-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -231,5 +250,5 @@ export default function ForgotPasswordPage() {
         </motion.div>
       </motion.div>
     </div>
-  )
+  );
 }

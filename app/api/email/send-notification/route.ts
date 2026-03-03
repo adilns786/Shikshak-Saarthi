@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // Email notification types
-type NotificationType = 
+type NotificationType =
   | "account_created"
   | "hod_account_created"
   | "form_submitted"
@@ -24,8 +24,10 @@ export async function POST(request: NextRequest) {
 
     if (!recipientEmail || !recipientName || !type) {
       return NextResponse.json(
-        { error: "Missing required fields: recipientEmail, recipientName, type" },
-        { status: 400 }
+        {
+          error: "Missing required fields: recipientEmail, recipientName, type",
+        },
+        { status: 400 },
       );
     }
 
@@ -34,19 +36,21 @@ export async function POST(request: NextRequest) {
 
     // Try to send email if Resend is configured
     let emailSent = false;
-    
+
     if (process.env.RESEND_API_KEY) {
       try {
         const { Resend } = await import("resend");
         const resend = new Resend(process.env.RESEND_API_KEY);
-        
+
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || "Shikshak Sarthi <noreply@shikshaksarthi.in>",
+          from:
+            process.env.RESEND_FROM_EMAIL ||
+            "Shikshak Sarthi <noreply@shikshaksarthi.in>",
           to: recipientEmail,
           subject: emailContent.subject,
           html: emailContent.html,
         });
-        
+
         emailSent = true;
       } catch (sendError) {
         console.log("Email sending failed:", sendError);
@@ -55,25 +59,28 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: emailSent ? "Email sent successfully" : "Email service not configured",
+      message: emailSent
+        ? "Email sent successfully"
+        : "Email service not configured",
       emailSent,
     });
   } catch (error: unknown) {
     console.error("Send notification error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to send notification";
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to send notification";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
 function generateEmailContent(
   type: NotificationType,
   recipientName: string,
-  data?: Record<string, string>
+  data?: Record<string, string>,
 ): { subject: string; html: string } {
-  const templates: Record<NotificationType, { subject: string; content: string; icon: string; color: string }> = {
+  const templates: Record<
+    NotificationType,
+    { subject: string; content: string; icon: string; color: string }
+  > = {
     account_created: {
       subject: "Welcome to Shikshak Sarthi!",
       content: `Your faculty account has been created successfully. You can now log in with your credentials.`,
@@ -144,13 +151,17 @@ function generateEmailContent(
                   <h2 style="color: #1e293b; font-size: 22px; margin: 0 0 16px;">Hello, ${recipientName}!</h2>
                   <p style="color: #64748b; font-size: 16px; line-height: 1.6;">${template.content}</p>
                   
-                  ${data?.tempPassword ? `
+                  ${
+                    data?.tempPassword
+                      ? `
                   <div style="background-color: #f1f5f9; border-radius: 12px; padding: 24px; margin: 24px 0;">
                     <p style="color: #475569; font-size: 14px; margin: 0 0 12px;"><strong>Your temporary password:</strong></p>
                     <code style="background-color: #e2e8f0; padding: 8px 16px; border-radius: 6px; font-size: 18px; color: #1e293b;">${data.tempPassword}</code>
                     <p style="color: #64748b; font-size: 12px; margin: 16px 0 0;">Please change this password after your first login.</p>
                   </div>
-                  ` : ""}
+                  `
+                      : ""
+                  }
                   
                   <div style="text-align: center; margin: 32px 0;">
                     <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/login" 

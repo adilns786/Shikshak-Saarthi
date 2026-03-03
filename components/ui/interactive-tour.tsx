@@ -32,18 +32,21 @@ export const useTourStore = create<TourState>((set) => ({
   currentStep: 0,
   steps: [],
   startTour: (steps) => set({ isActive: true, steps, currentStep: 0 }),
-  nextStep: () => set((state) => ({ 
-    currentStep: Math.min(state.currentStep + 1, state.steps.length - 1) 
-  })),
-  prevStep: () => set((state) => ({ 
-    currentStep: Math.max(state.currentStep - 1, 0) 
-  })),
+  nextStep: () =>
+    set((state) => ({
+      currentStep: Math.min(state.currentStep + 1, state.steps.length - 1),
+    })),
+  prevStep: () =>
+    set((state) => ({
+      currentStep: Math.max(state.currentStep - 1, 0),
+    })),
   endTour: () => set({ isActive: false, currentStep: 0 }),
   setStep: (step) => set({ currentStep: step }),
 }));
 
 export function InteractiveTour() {
-  const { isActive, currentStep, steps, nextStep, prevStep, endTour } = useTourStore();
+  const { isActive, currentStep, steps, nextStep, prevStep, endTour } =
+    useTourStore();
   const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
@@ -58,7 +61,9 @@ export function InteractiveTour() {
     }
 
     // Find target element
-    const element = document.querySelector(currentStepData.target) as HTMLElement;
+    const element = document.querySelector(
+      currentStepData.target,
+    ) as HTMLElement;
     if (!element) {
       console.warn(`Tour target not found: ${currentStepData.target}`);
       return;
@@ -134,7 +139,8 @@ export function InteractiveTour() {
             left: targetElement.getBoundingClientRect().left - 8,
             width: targetElement.getBoundingClientRect().width + 16,
             height: targetElement.getBoundingClientRect().height + 16,
-            boxShadow: "0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 0 9999px rgba(0, 0, 0, 0.6)",
+            boxShadow:
+              "0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 0 9999px rgba(0, 0, 0, 0.6)",
             borderRadius: "8px",
             transition: "all 0.3s ease",
           }}
@@ -169,19 +175,27 @@ export function InteractiveTour() {
           </div>
 
           {/* Content */}
-          <p className="text-gray-300 text-sm mb-4">{currentStepData.content}</p>
+          <p className="text-gray-300 text-sm mb-4">
+            {currentStepData.content}
+          </p>
 
           {/* Progress */}
           <div className="mb-4">
             <div className="flex justify-between text-xs text-gray-400 mb-2">
-              <span>Step {currentStep + 1} of {steps.length}</span>
-              <span>{Math.round(((currentStep + 1) / steps.length) * 100)}%</span>
+              <span>
+                Step {currentStep + 1} of {steps.length}
+              </span>
+              <span>
+                {Math.round(((currentStep + 1) / steps.length) * 100)}%
+              </span>
             </div>
             <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
                 initial={{ width: 0 }}
-                animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+                animate={{
+                  width: `${((currentStep + 1) / steps.length) * 100}%`,
+                }}
                 transition={{ duration: 0.3 }}
               />
             </div>

@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,11 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Plus, 
-  Trash2, 
-  Save, 
-  ChevronDown, 
+import {
+  Plus,
+  Trash2,
+  Save,
+  ChevronDown,
   ChevronUp,
   User,
   GraduationCap,
@@ -51,7 +57,12 @@ interface PersonalInfoFormProps {
   loading?: boolean;
 }
 
-export function PersonalInfoForm({ data, onChange, onSave, loading }: PersonalInfoFormProps) {
+export function PersonalInfoForm({
+  data,
+  onChange,
+  onSave,
+  loading,
+}: PersonalInfoFormProps) {
   const handleChange = (field: keyof PersonalInfo, value: string) => {
     onChange({ ...data, [field]: value });
   };
@@ -73,7 +84,9 @@ export function PersonalInfoForm({ data, onChange, onSave, loading }: PersonalIn
             <Input
               id="name"
               value={data.name || ""}
-              onChange={(e) => handleChange("name", e.target.value.toUpperCase())}
+              onChange={(e) =>
+                handleChange("name", e.target.value.toUpperCase())
+              }
               placeholder="DR. JOHN DOE"
               className="uppercase"
             />
@@ -104,7 +117,9 @@ export function PersonalInfoForm({ data, onChange, onSave, loading }: PersonalIn
             <Label htmlFor="designation">Current Designation *</Label>
             <Select
               value={data.current_designation || ""}
-              onValueChange={(value) => handleChange("current_designation", value)}
+              onValueChange={(value) =>
+                handleChange("current_designation", value)
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select Designation" />
@@ -149,7 +164,9 @@ export function PersonalInfoForm({ data, onChange, onSave, loading }: PersonalIn
               id="last_promotion_date"
               type="date"
               value={data.last_promotion_date || ""}
-              onChange={(e) => handleChange("last_promotion_date", e.target.value)}
+              onChange={(e) =>
+                handleChange("last_promotion_date", e.target.value)
+              }
             />
           </div>
 
@@ -175,18 +192,24 @@ export function PersonalInfoForm({ data, onChange, onSave, loading }: PersonalIn
 
           {/* Applied Designation */}
           <div>
-            <Label htmlFor="applied_designation">Designation Applied For (CAS)</Label>
+            <Label htmlFor="applied_designation">
+              Designation Applied For (CAS)
+            </Label>
             <Input
               id="applied_designation"
               value={data.applied_designation || ""}
-              onChange={(e) => handleChange("applied_designation", e.target.value)}
+              onChange={(e) =>
+                handleChange("applied_designation", e.target.value)
+              }
               placeholder="e.g., Associate Professor"
             />
           </div>
 
           {/* Eligibility Date */}
           <div>
-            <Label htmlFor="eligibility_date">Date of Eligibility for Promotion</Label>
+            <Label htmlFor="eligibility_date">
+              Date of Eligibility for Promotion
+            </Label>
             <Input
               id="eligibility_date"
               type="date"
@@ -325,7 +348,12 @@ interface QualificationsFormProps {
   loading?: boolean;
 }
 
-export function QualificationsForm({ data, onChange, onSave, loading }: QualificationsFormProps) {
+export function QualificationsForm({
+  data,
+  onChange,
+  onSave,
+  loading,
+}: QualificationsFormProps) {
   const addQualification = () => {
     const newQual: AcademicQualification = {
       id: `qual-${Date.now()}`,
@@ -339,7 +367,11 @@ export function QualificationsForm({ data, onChange, onSave, loading }: Qualific
     onChange([...data, newQual]);
   };
 
-  const updateQualification = (index: number, field: keyof AcademicQualification, value: string) => {
+  const updateQualification = (
+    index: number,
+    field: keyof AcademicQualification,
+    value: string,
+  ) => {
     const updated = [...data];
     updated[index] = { ...updated[index], [field]: value };
     onChange(updated);
@@ -350,7 +382,18 @@ export function QualificationsForm({ data, onChange, onSave, loading }: Qualific
     onChange(updated);
   };
 
-  const examOptions = ["S.S.C.", "H.S.C.", "Diploma", "B.E./B.Tech", "M.E./M.Tech", "B.Sc.", "M.Sc.", "B.C.A.", "M.C.A.", "Other"];
+  const examOptions = [
+    "S.S.C.",
+    "H.S.C.",
+    "Diploma",
+    "B.E./B.Tech",
+    "M.E./M.Tech",
+    "B.Sc.",
+    "M.Sc.",
+    "B.C.A.",
+    "M.C.A.",
+    "Other",
+  ];
 
   return (
     <Card className="shadow-lg">
@@ -361,7 +404,9 @@ export function QualificationsForm({ data, onChange, onSave, loading }: Qualific
               <GraduationCap className="h-5 w-5 text-accent" />
               Academic Qualifications
             </CardTitle>
-            <CardDescription>Qualifications from S.S.C. till Post-Graduation</CardDescription>
+            <CardDescription>
+              Qualifications from S.S.C. till Post-Graduation
+            </CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={addQualification}>
             <Plus className="h-4 w-4 mr-2" />
@@ -374,7 +419,11 @@ export function QualificationsForm({ data, onChange, onSave, loading }: Qualific
           <div className="text-center py-8 text-muted-foreground">
             <GraduationCap className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No qualifications added yet.</p>
-            <Button variant="outline" className="mt-4" onClick={addQualification}>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={addQualification}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Your First Qualification
             </Button>
@@ -408,7 +457,9 @@ export function QualificationsForm({ data, onChange, onSave, loading }: Qualific
                     <Label>Examination</Label>
                     <Select
                       value={qual.examination}
-                      onValueChange={(value) => updateQualification(index, "examination", value)}
+                      onValueChange={(value) =>
+                        updateQualification(index, "examination", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select Exam" />
@@ -427,7 +478,13 @@ export function QualificationsForm({ data, onChange, onSave, loading }: Qualific
                     <Label>Board/University</Label>
                     <Input
                       value={qual.board_university}
-                      onChange={(e) => updateQualification(index, "board_university", e.target.value)}
+                      onChange={(e) =>
+                        updateQualification(
+                          index,
+                          "board_university",
+                          e.target.value,
+                        )
+                      }
                       placeholder="University of Mumbai"
                     />
                   </div>
@@ -436,7 +493,13 @@ export function QualificationsForm({ data, onChange, onSave, loading }: Qualific
                     <Label>Year of Passing</Label>
                     <Input
                       value={qual.year_passing}
-                      onChange={(e) => updateQualification(index, "year_passing", e.target.value)}
+                      onChange={(e) =>
+                        updateQualification(
+                          index,
+                          "year_passing",
+                          e.target.value,
+                        )
+                      }
                       placeholder="2015"
                       maxLength={4}
                     />
@@ -446,7 +509,9 @@ export function QualificationsForm({ data, onChange, onSave, loading }: Qualific
                     <Label>Percentage/CGPA</Label>
                     <Input
                       value={qual.percentage}
-                      onChange={(e) => updateQualification(index, "percentage", e.target.value)}
+                      onChange={(e) =>
+                        updateQualification(index, "percentage", e.target.value)
+                      }
                       placeholder="85% or 8.5 CGPA"
                     />
                   </div>
@@ -455,15 +520,25 @@ export function QualificationsForm({ data, onChange, onSave, loading }: Qualific
                     <Label>Division/Class/Grade</Label>
                     <Select
                       value={qual.division_class_grade}
-                      onValueChange={(value) => updateQualification(index, "division_class_grade", value)}
+                      onValueChange={(value) =>
+                        updateQualification(
+                          index,
+                          "division_class_grade",
+                          value,
+                        )
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="First Class with Distinction">First Class with Distinction</SelectItem>
+                        <SelectItem value="First Class with Distinction">
+                          First Class with Distinction
+                        </SelectItem>
                         <SelectItem value="First Class">First Class</SelectItem>
-                        <SelectItem value="Second Class">Second Class</SelectItem>
+                        <SelectItem value="Second Class">
+                          Second Class
+                        </SelectItem>
                         <SelectItem value="Pass Class">Pass Class</SelectItem>
                         <SelectItem value="Grade A">Grade A</SelectItem>
                         <SelectItem value="Grade B">Grade B</SelectItem>
@@ -475,7 +550,9 @@ export function QualificationsForm({ data, onChange, onSave, loading }: Qualific
                     <Label>Subject/Specialization</Label>
                     <Input
                       value={qual.subject}
-                      onChange={(e) => updateQualification(index, "subject", e.target.value)}
+                      onChange={(e) =>
+                        updateQualification(index, "subject", e.target.value)
+                      }
                       placeholder="Computer Science"
                     />
                   </div>
@@ -506,7 +583,12 @@ interface ResearchDegreesFormProps {
   loading?: boolean;
 }
 
-export function ResearchDegreesForm({ data, onChange, onSave, loading }: ResearchDegreesFormProps) {
+export function ResearchDegreesForm({
+  data,
+  onChange,
+  onSave,
+  loading,
+}: ResearchDegreesFormProps) {
   const addDegree = () => {
     const newDegree: ResearchDegree = {
       id: `rd-${Date.now()}`,
@@ -520,7 +602,11 @@ export function ResearchDegreesForm({ data, onChange, onSave, loading }: Researc
     onChange([...data, newDegree]);
   };
 
-  const updateDegree = (index: number, field: keyof ResearchDegree, value: string) => {
+  const updateDegree = (
+    index: number,
+    field: keyof ResearchDegree,
+    value: string,
+  ) => {
     const updated = [...data];
     updated[index] = { ...updated[index], [field]: value };
     onChange(updated);
@@ -540,7 +626,9 @@ export function ResearchDegreesForm({ data, onChange, onSave, loading }: Researc
               <Award className="h-5 w-5 text-accent" />
               Research Degrees
             </CardTitle>
-            <CardDescription>M.Phil., Ph.D., D.Sc., D.Litt. and other research degrees</CardDescription>
+            <CardDescription>
+              M.Phil., Ph.D., D.Sc., D.Litt. and other research degrees
+            </CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={addDegree}>
             <Plus className="h-4 w-4 mr-2" />
@@ -586,15 +674,21 @@ export function ResearchDegreesForm({ data, onChange, onSave, loading }: Researc
                     <Label>Degree Type</Label>
                     <Select
                       value={degree.degree_type}
-                      onValueChange={(value) => updateDegree(index, "degree_type", value as any)}
+                      onValueChange={(value) =>
+                        updateDegree(index, "degree_type", value as any)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="M.Phil.">M.Phil.</SelectItem>
-                        <SelectItem value="Ph.D./D.Phil.">Ph.D./D.Phil.</SelectItem>
-                        <SelectItem value="D.Sc./D.Litt.">D.Sc./D.Litt.</SelectItem>
+                        <SelectItem value="Ph.D./D.Phil.">
+                          Ph.D./D.Phil.
+                        </SelectItem>
+                        <SelectItem value="D.Sc./D.Litt.">
+                          D.Sc./D.Litt.
+                        </SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
@@ -604,7 +698,9 @@ export function ResearchDegreesForm({ data, onChange, onSave, loading }: Researc
                     <Label>University</Label>
                     <Input
                       value={degree.university}
-                      onChange={(e) => updateDegree(index, "university", e.target.value)}
+                      onChange={(e) =>
+                        updateDegree(index, "university", e.target.value)
+                      }
                       placeholder="University of Mumbai"
                     />
                   </div>
@@ -613,7 +709,9 @@ export function ResearchDegreesForm({ data, onChange, onSave, loading }: Researc
                     <Label>Thesis Title</Label>
                     <Textarea
                       value={degree.title}
-                      onChange={(e) => updateDegree(index, "title", e.target.value)}
+                      onChange={(e) =>
+                        updateDegree(index, "title", e.target.value)
+                      }
                       placeholder="Title of thesis/dissertation"
                       rows={2}
                     />
@@ -623,7 +721,9 @@ export function ResearchDegreesForm({ data, onChange, onSave, loading }: Researc
                     <Label>Guide Name</Label>
                     <Input
                       value={degree.guide_name || ""}
-                      onChange={(e) => updateDegree(index, "guide_name", e.target.value)}
+                      onChange={(e) =>
+                        updateDegree(index, "guide_name", e.target.value)
+                      }
                       placeholder="Dr. Guide Name"
                     />
                   </div>
@@ -633,7 +733,9 @@ export function ResearchDegreesForm({ data, onChange, onSave, loading }: Researc
                     <Input
                       type="date"
                       value={degree.registration_date || ""}
-                      onChange={(e) => updateDegree(index, "registration_date", e.target.value)}
+                      onChange={(e) =>
+                        updateDegree(index, "registration_date", e.target.value)
+                      }
                     />
                   </div>
 
@@ -642,7 +744,9 @@ export function ResearchDegreesForm({ data, onChange, onSave, loading }: Researc
                     <Input
                       type="date"
                       value={degree.date_of_award}
-                      onChange={(e) => updateDegree(index, "date_of_award", e.target.value)}
+                      onChange={(e) =>
+                        updateDegree(index, "date_of_award", e.target.value)
+                      }
                     />
                   </div>
                 </div>
@@ -713,13 +817,21 @@ export function EmploymentHistoryForm({
     onChangeCurrent([...currentPosts, newPost]);
   };
 
-  const updatePriorAppointment = (index: number, field: keyof PriorAppointment, value: string) => {
+  const updatePriorAppointment = (
+    index: number,
+    field: keyof PriorAppointment,
+    value: string,
+  ) => {
     const updated = [...priorAppointments];
     updated[index] = { ...updated[index], [field]: value };
     onChangePrior(updated);
   };
 
-  const updateCurrentPost = (index: number, field: keyof CurrentPost, value: string) => {
+  const updateCurrentPost = (
+    index: number,
+    field: keyof CurrentPost,
+    value: string,
+  ) => {
     const updated = [...currentPosts];
     updated[index] = { ...updated[index], [field]: value };
     onChangeCurrent(updated);
@@ -737,7 +849,7 @@ export function EmploymentHistoryForm({
     <div className="space-y-6">
       {/* Prior Appointments */}
       <Card className="shadow-lg">
-        <CardHeader 
+        <CardHeader
           className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-t-lg cursor-pointer"
           onClick={() => setShowPrior(!showPrior)}
         >
@@ -747,14 +859,27 @@ export function EmploymentHistoryForm({
                 <Briefcase className="h-5 w-5 text-accent" />
                 Prior Appointments
               </CardTitle>
-              <CardDescription>Employment held before joining this institution</CardDescription>
+              <CardDescription>
+                Employment held before joining this institution
+              </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); addPriorAppointment(); }}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addPriorAppointment();
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add
               </Button>
-              {showPrior ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+              {showPrior ? (
+                <ChevronUp className="h-5 w-5" />
+              ) : (
+                <ChevronDown className="h-5 w-5" />
+              )}
             </div>
           </div>
         </CardHeader>
@@ -774,7 +899,9 @@ export function EmploymentHistoryForm({
                     className="p-4 border rounded-lg bg-muted/30"
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <span className="font-medium">Prior Appointment #{index + 1}</span>
+                      <span className="font-medium">
+                        Prior Appointment #{index + 1}
+                      </span>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -790,7 +917,13 @@ export function EmploymentHistoryForm({
                         <Label>Designation</Label>
                         <Input
                           value={appt.designation}
-                          onChange={(e) => updatePriorAppointment(index, "designation", e.target.value)}
+                          onChange={(e) =>
+                            updatePriorAppointment(
+                              index,
+                              "designation",
+                              e.target.value,
+                            )
+                          }
                           placeholder="Assistant Professor"
                         />
                       </div>
@@ -798,7 +931,13 @@ export function EmploymentHistoryForm({
                         <Label>Employer Name</Label>
                         <Input
                           value={appt.employer_name}
-                          onChange={(e) => updatePriorAppointment(index, "employer_name", e.target.value)}
+                          onChange={(e) =>
+                            updatePriorAppointment(
+                              index,
+                              "employer_name",
+                              e.target.value,
+                            )
+                          }
                           placeholder="Organization Name"
                         />
                       </div>
@@ -806,7 +945,13 @@ export function EmploymentHistoryForm({
                         <Label>Nature of Appointment</Label>
                         <Select
                           value={appt.nature_of_appointment}
-                          onValueChange={(value) => updatePriorAppointment(index, "nature_of_appointment", value as any)}
+                          onValueChange={(value) =>
+                            updatePriorAppointment(
+                              index,
+                              "nature_of_appointment",
+                              value as any,
+                            )
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -825,7 +970,13 @@ export function EmploymentHistoryForm({
                         <Input
                           type="date"
                           value={appt.date_of_joining}
-                          onChange={(e) => updatePriorAppointment(index, "date_of_joining", e.target.value)}
+                          onChange={(e) =>
+                            updatePriorAppointment(
+                              index,
+                              "date_of_joining",
+                              e.target.value,
+                            )
+                          }
                         />
                       </div>
                       <div>
@@ -833,14 +984,26 @@ export function EmploymentHistoryForm({
                         <Input
                           type="date"
                           value={appt.date_of_leaving}
-                          onChange={(e) => updatePriorAppointment(index, "date_of_leaving", e.target.value)}
+                          onChange={(e) =>
+                            updatePriorAppointment(
+                              index,
+                              "date_of_leaving",
+                              e.target.value,
+                            )
+                          }
                         />
                       </div>
                       <div>
                         <Label>Salary with Grade</Label>
                         <Input
                           value={appt.salary_with_grade}
-                          onChange={(e) => updatePriorAppointment(index, "salary_with_grade", e.target.value)}
+                          onChange={(e) =>
+                            updatePriorAppointment(
+                              index,
+                              "salary_with_grade",
+                              e.target.value,
+                            )
+                          }
                           placeholder="Level 10"
                         />
                       </div>
@@ -848,7 +1011,13 @@ export function EmploymentHistoryForm({
                         <Label>Nature of Duties</Label>
                         <Textarea
                           value={appt.nature_of_duties}
-                          onChange={(e) => updatePriorAppointment(index, "nature_of_duties", e.target.value)}
+                          onChange={(e) =>
+                            updatePriorAppointment(
+                              index,
+                              "nature_of_duties",
+                              e.target.value,
+                            )
+                          }
                           placeholder="Teaching, Research, Administration..."
                           rows={2}
                         />
@@ -857,7 +1026,13 @@ export function EmploymentHistoryForm({
                         <Label>Reason for Leaving</Label>
                         <Input
                           value={appt.reason_of_leaving}
-                          onChange={(e) => updatePriorAppointment(index, "reason_of_leaving", e.target.value)}
+                          onChange={(e) =>
+                            updatePriorAppointment(
+                              index,
+                              "reason_of_leaving",
+                              e.target.value,
+                            )
+                          }
                           placeholder="Better opportunity, Career growth, etc."
                         />
                       </div>
@@ -872,7 +1047,7 @@ export function EmploymentHistoryForm({
 
       {/* Current Posts */}
       <Card className="shadow-lg">
-        <CardHeader 
+        <CardHeader
           className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-t-lg cursor-pointer"
           onClick={() => setShowCurrent(!showCurrent)}
         >
@@ -882,14 +1057,27 @@ export function EmploymentHistoryForm({
                 <Briefcase className="h-5 w-5 text-green-600" />
                 Posts at Current Institution
               </CardTitle>
-              <CardDescription>Positions held after joining this institution</CardDescription>
+              <CardDescription>
+                Positions held after joining this institution
+              </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); addCurrentPost(); }}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addCurrentPost();
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add
               </Button>
-              {showCurrent ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+              {showCurrent ? (
+                <ChevronUp className="h-5 w-5" />
+              ) : (
+                <ChevronDown className="h-5 w-5" />
+              )}
             </div>
           </div>
         </CardHeader>
@@ -925,7 +1113,9 @@ export function EmploymentHistoryForm({
                         <Label>Designation</Label>
                         <Select
                           value={post.designation}
-                          onValueChange={(value) => updateCurrentPost(index, "designation", value)}
+                          onValueChange={(value) =>
+                            updateCurrentPost(index, "designation", value)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select" />
@@ -943,7 +1133,9 @@ export function EmploymentHistoryForm({
                         <Label>Department</Label>
                         <Select
                           value={post.department}
-                          onValueChange={(value) => updateCurrentPost(index, "department", value)}
+                          onValueChange={(value) =>
+                            updateCurrentPost(index, "department", value)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select" />
@@ -962,7 +1154,13 @@ export function EmploymentHistoryForm({
                         <Input
                           type="date"
                           value={post.from_date}
-                          onChange={(e) => updateCurrentPost(index, "from_date", e.target.value)}
+                          onChange={(e) =>
+                            updateCurrentPost(
+                              index,
+                              "from_date",
+                              e.target.value,
+                            )
+                          }
                         />
                       </div>
                       <div>
@@ -970,7 +1168,9 @@ export function EmploymentHistoryForm({
                         <Input
                           type="date"
                           value={post.to_date}
-                          onChange={(e) => updateCurrentPost(index, "to_date", e.target.value)}
+                          onChange={(e) =>
+                            updateCurrentPost(index, "to_date", e.target.value)
+                          }
                           placeholder="Present"
                         />
                       </div>
@@ -978,7 +1178,9 @@ export function EmploymentHistoryForm({
                         <Label>Grade Pay / Pay Matrix Level</Label>
                         <Select
                           value={post.grade_pay_level}
-                          onValueChange={(value) => updateCurrentPost(index, "grade_pay_level", value)}
+                          onValueChange={(value) =>
+                            updateCurrentPost(index, "grade_pay_level", value)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select Level" />
@@ -1021,7 +1223,12 @@ interface TeachingExperienceFormProps {
   loading?: boolean;
 }
 
-export function TeachingExperienceForm({ data, onChange, onSave, loading }: TeachingExperienceFormProps) {
+export function TeachingExperienceForm({
+  data,
+  onChange,
+  onSave,
+  loading,
+}: TeachingExperienceFormProps) {
   const handleChange = (field: keyof TeachingExperience, value: string) => {
     onChange({ ...data, [field]: value });
   };
@@ -1033,7 +1240,9 @@ export function TeachingExperienceForm({ data, onChange, onSave, loading }: Teac
           <GraduationCap className="h-5 w-5 text-accent" />
           Teaching Experience
         </CardTitle>
-        <CardDescription>Period of teaching experience at various levels</CardDescription>
+        <CardDescription>
+          Period of teaching experience at various levels
+        </CardDescription>
       </CardHeader>
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1080,6 +1289,4 @@ export function TeachingExperienceForm({ data, onChange, onSave, loading }: Teac
 }
 
 // Export all components
-export {
-  PersonalInfoForm as default,
-};
+export { PersonalInfoForm as default };

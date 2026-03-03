@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Sparkles,
@@ -73,7 +79,7 @@ export function AIInsights({ profileData, className = "" }: AIInsightsProps) {
 
   const generateInsights = async () => {
     setLoading(true);
-    
+
     // Simulate AI processing delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -133,7 +139,9 @@ export function AIInsights({ profileData, className = "" }: AIInsightsProps) {
       });
     } else {
       const totalFunding = projects.reduce((acc: number, p: any) => {
-        return acc + (parseFloat(String(p.amount).replace(/[^0-9.-]/g, "")) || 0);
+        return (
+          acc + (parseFloat(String(p.amount).replace(/[^0-9.-]/g, "")) || 0)
+        );
       }, 0);
 
       if (totalFunding > 1000000) {
@@ -149,7 +157,10 @@ export function AIInsights({ profileData, className = "" }: AIInsightsProps) {
     }
 
     // Analyze patents
-    const patents = partB.patents || partB.patents_policy_awards?.filter((p: any) => p.type === "patent") || [];
+    const patents =
+      partB.patents ||
+      partB.patents_policy_awards?.filter((p: any) => p.type === "patent") ||
+      [];
     if (patents.length > 0) {
       newInsights.push({
         id: "pat-1",
@@ -196,7 +207,9 @@ export function AIInsights({ profileData, className = "" }: AIInsightsProps) {
 
     // Analyze research guidance
     const guidance = partB.table2?.researchGuidance || [];
-    const phdStudents = guidance.filter((g: any) => g.degree === "Ph.D.").length;
+    const phdStudents = guidance.filter(
+      (g: any) => g.degree === "Ph.D.",
+    ).length;
     if (phdStudents > 0) {
       newInsights.push({
         id: "guide-1",
@@ -211,13 +224,17 @@ export function AIInsights({ profileData, className = "" }: AIInsightsProps) {
     // Analyze invited lectures
     const lectures = partB.invited_lectures || [];
     if (lectures.length > 0) {
-      const internationalLectures = lectures.filter((l: any) => l.level === "International").length;
+      const internationalLectures = lectures.filter(
+        (l: any) => l.level === "International",
+      ).length;
       newInsights.push({
         id: "lec-1",
         type: "analysis",
         title: "Academic Visibility",
         description: `You have delivered ${lectures.length} invited lecture(s)${
-          internationalLectures > 0 ? `, including ${internationalLectures} at international level` : ""
+          internationalLectures > 0
+            ? `, including ${internationalLectures} at international level`
+            : ""
         }. This enhances your academic reputation.`,
         priority: "low",
         category: "service",
@@ -270,7 +287,9 @@ export function AIInsights({ profileData, className = "" }: AIInsightsProps) {
             disabled={generating}
             className="bg-white/50"
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${generating ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${generating ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
         </div>
@@ -314,10 +333,10 @@ export function AIInsights({ profileData, className = "" }: AIInsightsProps) {
                             insight.type === "achievement"
                               ? "bg-green-100 text-green-600"
                               : insight.type === "warning"
-                              ? "bg-red-100 text-red-600"
-                              : insight.type === "recommendation"
-                              ? "bg-amber-100 text-amber-600"
-                              : "bg-blue-100 text-blue-600"
+                                ? "bg-red-100 text-red-600"
+                                : insight.type === "recommendation"
+                                  ? "bg-amber-100 text-amber-600"
+                                  : "bg-blue-100 text-blue-600"
                           }`}
                         >
                           <TypeIcon className="h-5 w-5" />
@@ -333,8 +352,8 @@ export function AIInsights({ profileData, className = "" }: AIInsightsProps) {
                               insight.priority === "high"
                                 ? "bg-red-100 text-red-700"
                                 : insight.priority === "medium"
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-green-100 text-green-700"
+                                  ? "bg-amber-100 text-amber-700"
+                                  : "bg-green-100 text-green-700"
                             }`}
                           >
                             {insight.priority}
