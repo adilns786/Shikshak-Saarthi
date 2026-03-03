@@ -25,3 +25,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+ 
+# Secrets and credentials
+/.firebase
+/firebaseConfig.js
+firebaseConfig.json
+*_serviceAccount*.json
+serviceAccount*.json
+credentials.json
+*.pem
+*.key
+*.p12
+*.jks
