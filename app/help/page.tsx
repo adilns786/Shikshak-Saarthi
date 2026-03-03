@@ -3,7 +3,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -63,37 +69,43 @@ const walkthroughs: ModuleWalkthrough[] = [
   {
     id: "dashboard",
     title: "Dashboard Overview",
-    description: "Learn how to navigate and use the faculty dashboard effectively",
+    description:
+      "Learn how to navigate and use the faculty dashboard effectively",
     icon: Home,
     estimatedTime: "3 min",
     steps: [
       {
         id: "dash-1",
         title: "Welcome to Your Dashboard",
-        description: "This is your central hub for managing all your academic activities. You can see your profile summary, recent activities, and quick access to all modules.",
+        description:
+          "This is your central hub for managing all your academic activities. You can see your profile summary, recent activities, and quick access to all modules.",
       },
       {
         id: "dash-2",
         title: "Quick Stats Cards",
-        description: "At the top, you'll find quick statistics showing your publications, projects, API score, and pending tasks. These update in real-time.",
+        description:
+          "At the top, you'll find quick statistics showing your publications, projects, API score, and pending tasks. These update in real-time.",
         target: "[data-tour='stats-cards']",
       },
       {
         id: "dash-3",
         title: "Navigation Menu",
-        description: "Use the sidebar to navigate between different sections - Profile, Forms, Publications, Reports, and Settings.",
+        description:
+          "Use the sidebar to navigate between different sections - Profile, Forms, Publications, Reports, and Settings.",
         target: "[data-tour='sidebar']",
       },
       {
         id: "dash-4",
         title: "Recent Activity",
-        description: "The activity section shows your recent actions and any pending notifications or tasks that require your attention.",
+        description:
+          "The activity section shows your recent actions and any pending notifications or tasks that require your attention.",
         target: "[data-tour='recent-activity']",
       },
       {
         id: "dash-5",
         title: "AI Assistant",
-        description: "Click the AI Assistant button at the bottom right for intelligent help with form filling and data analysis.",
+        description:
+          "Click the AI Assistant button at the bottom right for intelligent help with form filling and data analysis.",
         target: "[data-tour='ai-button']",
       },
     ],
@@ -108,71 +120,84 @@ const walkthroughs: ModuleWalkthrough[] = [
       {
         id: "prof-1",
         title: "Personal Information",
-        description: "Start by filling in your personal details - name, contact information, and department. This information is used across all your appraisal forms.",
+        description:
+          "Start by filling in your personal details - name, contact information, and department. This information is used across all your appraisal forms.",
       },
       {
         id: "prof-2",
         title: "Academic Qualifications",
-        description: "Add your educational qualifications from SSC to PhD. Include all degrees, universities, years, and percentages.",
+        description:
+          "Add your educational qualifications from SSC to PhD. Include all degrees, universities, years, and percentages.",
       },
       {
         id: "prof-3",
         title: "Research Degrees",
-        description: "Document your research degrees including M.Phil, Ph.D., D.Sc., etc. Include thesis titles and awarding universities.",
+        description:
+          "Document your research degrees including M.Phil, Ph.D., D.Sc., etc. Include thesis titles and awarding universities.",
       },
       {
         id: "prof-4",
         title: "Employment History",
-        description: "Add your prior appointments and current position details for accurate experience calculation.",
+        description:
+          "Add your prior appointments and current position details for accurate experience calculation.",
       },
       {
         id: "prof-5",
         title: "Voice Input",
-        description: "Use the microphone button next to text fields for voice input. Simply speak and your words will be transcribed automatically.",
+        description:
+          "Use the microphone button next to text fields for voice input. Simply speak and your words will be transcribed automatically.",
       },
     ],
   },
   {
     id: "pbas-form",
     title: "PBAS Form Submission",
-    description: "Complete guide to filling and submitting your PBAS appraisal form",
+    description:
+      "Complete guide to filling and submitting your PBAS appraisal form",
     icon: FileText,
     estimatedTime: "10 min",
     steps: [
       {
         id: "pbas-1",
         title: "Understanding PBAS",
-        description: "Performance Based Appraisal System (PBAS) evaluates your academic contributions across teaching, research, and administrative duties.",
+        description:
+          "Performance Based Appraisal System (PBAS) evaluates your academic contributions across teaching, research, and administrative duties.",
       },
       {
         id: "pbas-2",
         title: "Part A: General Information",
-        description: "Part A contains your basic information, qualifications, and experience. Much of this is auto-filled from your profile.",
+        description:
+          "Part A contains your basic information, qualifications, and experience. Much of this is auto-filled from your profile.",
       },
       {
         id: "pbas-3",
         title: "Part B: Academic Performance",
-        description: "Part B covers your research papers, publications, projects, patents, and lectures. Each entry contributes to your API score.",
+        description:
+          "Part B covers your research papers, publications, projects, patents, and lectures. Each entry contributes to your API score.",
       },
       {
         id: "pbas-4",
         title: "Adding Publications",
-        description: "For each publication, include the title, journal name, ISSN, impact factor, and co-authors. The system auto-calculates API points.",
+        description:
+          "For each publication, include the title, journal name, ISSN, impact factor, and co-authors. The system auto-calculates API points.",
       },
       {
         id: "pbas-5",
         title: "Research Projects",
-        description: "Document sponsored projects with funding details, duration, and your role. Both completed and ongoing projects count.",
+        description:
+          "Document sponsored projects with funding details, duration, and your role. Both completed and ongoing projects count.",
       },
       {
         id: "pbas-6",
         title: "Saving Draft",
-        description: "Your form auto-saves as you type. You can also click 'Save Draft' to ensure all data is preserved before submission.",
+        description:
+          "Your form auto-saves as you type. You can also click 'Save Draft' to ensure all data is preserved before submission.",
       },
       {
         id: "pbas-7",
         title: "Final Submission",
-        description: "Review all sections before submitting. Once submitted, the form goes to your HOD for review. You'll receive email notifications for status updates.",
+        description:
+          "Review all sections before submitting. Once submitted, the form goes to your HOD for review. You'll receive email notifications for status updates.",
       },
     ],
   },
@@ -186,51 +211,60 @@ const walkthroughs: ModuleWalkthrough[] = [
       {
         id: "pub-1",
         title: "Adding Research Papers",
-        description: "Click 'Add Publication' and select the paper type - Journal, Conference, or Book Chapter.",
+        description:
+          "Click 'Add Publication' and select the paper type - Journal, Conference, or Book Chapter.",
       },
       {
         id: "pub-2",
         title: "Journal Details",
-        description: "For journal papers, specify if it's SCI, Scopus, or UGC-listed. Include the impact factor for accurate API calculation.",
+        description:
+          "For journal papers, specify if it's SCI, Scopus, or UGC-listed. Include the impact factor for accurate API calculation.",
       },
       {
         id: "pub-3",
         title: "Auto-Fill from DOI",
-        description: "Enter a DOI number and click 'Fetch' to automatically populate publication details from online databases.",
+        description:
+          "Enter a DOI number and click 'Fetch' to automatically populate publication details from online databases.",
       },
       {
         id: "pub-4",
         title: "Co-Author Allocation",
-        description: "Specify your position in the author list and number of authors for correct API score distribution.",
+        description:
+          "Specify your position in the author list and number of authors for correct API score distribution.",
       },
     ],
   },
   {
     id: "analytics",
     title: "Analytics & Reports",
-    description: "Understanding your performance metrics and generating reports",
+    description:
+      "Understanding your performance metrics and generating reports",
     icon: BarChart3,
     estimatedTime: "4 min",
     steps: [
       {
         id: "ana-1",
         title: "Performance Dashboard",
-        description: "View your year-wise performance trends with interactive charts showing publications, projects, and API scores.",
+        description:
+          "View your year-wise performance trends with interactive charts showing publications, projects, and API scores.",
       },
       {
         id: "ana-2",
         title: "Category Breakdown",
-        description: "See how your contributions are distributed across research, teaching, and administrative categories.",
+        description:
+          "See how your contributions are distributed across research, teaching, and administrative categories.",
       },
       {
         id: "ana-3",
         title: "AI Insights",
-        description: "Get AI-powered recommendations on areas for improvement and strategies to enhance your API score.",
+        description:
+          "Get AI-powered recommendations on areas for improvement and strategies to enhance your API score.",
       },
       {
         id: "ana-4",
         title: "Generating Reports",
-        description: "Export your data as PDF reports suitable for submission or personal records. Choose from detailed or summary formats.",
+        description:
+          "Export your data as PDF reports suitable for submission or personal records. Choose from detailed or summary formats.",
       },
     ],
   },
@@ -240,31 +274,38 @@ const walkthroughs: ModuleWalkthrough[] = [
 const faqs = [
   {
     question: "How is my API score calculated?",
-    answer: "API score is calculated based on UGC/AICTE guidelines. Points are awarded for publications (based on journal quality and authorship), research projects (based on funding and role), patents, PhD guidance, and academic contributions.",
+    answer:
+      "API score is calculated based on UGC/AICTE guidelines. Points are awarded for publications (based on journal quality and authorship), research projects (based on funding and role), patents, PhD guidance, and academic contributions.",
   },
   {
     question: "Can I edit my form after submission?",
-    answer: "Once submitted, the form is locked for review. If your HOD requests revisions, the form will be unlocked and you'll receive an email notification with specific feedback.",
+    answer:
+      "Once submitted, the form is locked for review. If your HOD requests revisions, the form will be unlocked and you'll receive an email notification with specific feedback.",
   },
   {
     question: "What documents do I need to upload?",
-    answer: "You should upload supporting documents for publications (first page or DOI proof), project sanction letters, patent certificates, and PhD scholar registration documents.",
+    answer:
+      "You should upload supporting documents for publications (first page or DOI proof), project sanction letters, patent certificates, and PhD scholar registration documents.",
   },
   {
     question: "How do I add a publication not found in databases?",
-    answer: "For publications not in databases, manually fill all fields. Upload the first page of the publication as supporting evidence. The system will validate the entry during review.",
+    answer:
+      "For publications not in databases, manually fill all fields. Upload the first page of the publication as supporting evidence. The system will validate the entry during review.",
   },
   {
     question: "What happens if I miss the submission deadline?",
-    answer: "Contact your HOD or the MIS admin for deadline extensions. Late submissions may be considered based on valid reasons but require approval from the competent authority.",
+    answer:
+      "Contact your HOD or the MIS admin for deadline extensions. Late submissions may be considered based on valid reasons but require approval from the competent authority.",
   },
   {
     question: "How can I track my submission status?",
-    answer: "Go to Dashboard > My Appraisals to see all your submissions with current status. You'll also receive email notifications for any status changes.",
+    answer:
+      "Go to Dashboard > My Appraisals to see all your submissions with current status. You'll also receive email notifications for any status changes.",
   },
   {
     question: "Is voice input available in all browsers?",
-    answer: "Voice input works best in Chrome and Edge browsers. Safari has limited support. Make sure to allow microphone access when prompted.",
+    answer:
+      "Voice input works best in Chrome and Edge browsers. Safari has limited support. Make sure to allow microphone access when prompted.",
   },
 ];
 
@@ -304,7 +345,8 @@ const videoTutorials = [
 
 // Help Page Component
 export default function HelpPage() {
-  const [activeWalkthrough, setActiveWalkthrough] = useState<ModuleWalkthrough | null>(null);
+  const [activeWalkthrough, setActiveWalkthrough] =
+    useState<ModuleWalkthrough | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("walkthroughs");
@@ -312,7 +354,7 @@ export default function HelpPage() {
   const filteredFaqs = faqs.filter(
     (faq) =>
       faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
+      faq.answer.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const startWalkthrough = (walkthrough: ModuleWalkthrough) => {
@@ -376,9 +418,16 @@ export default function HelpPage() {
         </motion.div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
           <TabsList className="grid w-full max-w-lg mx-auto grid-cols-4">
-            <TabsTrigger value="walkthroughs" className="flex items-center gap-2">
+            <TabsTrigger
+              value="walkthroughs"
+              className="flex items-center gap-2"
+            >
               <Play className="h-4 w-4" />
               <span className="hidden sm:inline">Walkthroughs</span>
             </TabsTrigger>
@@ -416,8 +465,12 @@ export default function HelpPage() {
                           {walkthrough.estimatedTime}
                         </span>
                       </div>
-                      <CardTitle className="text-lg mt-3">{walkthrough.title}</CardTitle>
-                      <CardDescription>{walkthrough.description}</CardDescription>
+                      <CardTitle className="text-lg mt-3">
+                        {walkthrough.title}
+                      </CardTitle>
+                      <CardDescription>
+                        {walkthrough.description}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
@@ -521,7 +574,10 @@ export default function HelpPage() {
                       { keys: ["Ctrl", "-"], action: "Decrease font size" },
                       { keys: ["Esc"], action: "Close dialog/modal" },
                       { keys: ["Tab"], action: "Navigate to next field" },
-                      { keys: ["Shift", "Tab"], action: "Navigate to previous field" },
+                      {
+                        keys: ["Shift", "Tab"],
+                        action: "Navigate to previous field",
+                      },
                     ].map((shortcut, index) => (
                       <div
                         key={index}
@@ -534,7 +590,9 @@ export default function HelpPage() {
                                 {key}
                               </kbd>
                               {i < shortcut.keys.length - 1 && (
-                                <span className="mx-1 text-muted-foreground">+</span>
+                                <span className="mx-1 text-muted-foreground">
+                                  +
+                                </span>
                               )}
                             </span>
                           ))}
@@ -577,7 +635,10 @@ export default function HelpPage() {
       {/* Walkthrough Modal */}
       <AnimatePresence>
         {activeWalkthrough && (
-          <Dialog open={!!activeWalkthrough} onOpenChange={() => closeWalkthrough()}>
+          <Dialog
+            open={!!activeWalkthrough}
+            onOpenChange={() => closeWalkthrough()}
+          >
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <div className="flex items-center justify-between">
@@ -641,8 +702,8 @@ export default function HelpPage() {
                           index === currentStep
                             ? "bg-accent"
                             : index < currentStep
-                            ? "bg-accent/50"
-                            : "bg-muted"
+                              ? "bg-accent/50"
+                              : "bg-muted"
                         }`}
                       />
                     ))}

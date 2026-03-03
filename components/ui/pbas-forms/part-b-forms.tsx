@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,7 +56,12 @@ interface ResearchPapersFormProps {
   loading?: boolean;
 }
 
-export function ResearchPapersForm({ data, onChange, onSave, loading }: ResearchPapersFormProps) {
+export function ResearchPapersForm({
+  data,
+  onChange,
+  onSave,
+  loading,
+}: ResearchPapersFormProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const addPaper = () => {
@@ -75,7 +86,11 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
     setExpandedIndex(data.length);
   };
 
-  const updatePaper = (index: number, field: keyof ResearchPaper, value: any) => {
+  const updatePaper = (
+    index: number,
+    field: keyof ResearchPaper,
+    value: any,
+  ) => {
     const updated = [...data];
     updated[index] = { ...updated[index], [field]: value };
     onChange(updated);
@@ -86,7 +101,18 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
     setExpandedIndex(null);
   };
 
-  const indexOptions = ["SCI", "SCIE", "Scopus", "UGC Care List", "Web of Science", "PubMed", "IEEE Xplore", "ACM Digital Library", "Google Scholar", "Other"];
+  const indexOptions = [
+    "SCI",
+    "SCIE",
+    "Scopus",
+    "UGC Care List",
+    "Web of Science",
+    "PubMed",
+    "IEEE Xplore",
+    "ACM Digital Library",
+    "Google Scholar",
+    "Other",
+  ];
 
   return (
     <Card className="shadow-lg">
@@ -97,7 +123,9 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
               <FileText className="h-5 w-5 text-red-500" />
               Research Papers
             </CardTitle>
-            <CardDescription>Journal articles, conference papers, and research publications</CardDescription>
+            <CardDescription>
+              Journal articles, conference papers, and research publications
+            </CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={addPaper}>
             <Plus className="h-4 w-4 mr-2" />
@@ -129,14 +157,17 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                   {/* Collapsed Header */}
                   <div
                     className="p-4 bg-muted/30 cursor-pointer flex items-center justify-between"
-                    onClick={() => setExpandedIndex(expandedIndex === index ? null : index)}
+                    onClick={() =>
+                      setExpandedIndex(expandedIndex === index ? null : index)
+                    }
                   >
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-foreground truncate">
                         {paper.title || `Paper #${index + 1}`}
                       </h4>
                       <p className="text-sm text-muted-foreground truncate">
-                        {paper.journal_name || "No journal specified"} • {paper.year || "Year not set"}
+                        {paper.journal_name || "No journal specified"} •{" "}
+                        {paper.year || "Year not set"}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -177,7 +208,9 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                           <Label>Paper Title *</Label>
                           <Textarea
                             value={paper.title}
-                            onChange={(e) => updatePaper(index, "title", e.target.value)}
+                            onChange={(e) =>
+                              updatePaper(index, "title", e.target.value)
+                            }
                             placeholder="Full title of the research paper"
                             rows={2}
                           />
@@ -187,7 +220,13 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                           <Label>Authors (comma separated) *</Label>
                           <Input
                             value={paper.authors.join(", ")}
-                            onChange={(e) => updatePaper(index, "authors", e.target.value.split(",").map(a => a.trim()))}
+                            onChange={(e) =>
+                              updatePaper(
+                                index,
+                                "authors",
+                                e.target.value.split(",").map((a) => a.trim()),
+                              )
+                            }
                             placeholder="John Doe, Jane Smith, Robert Brown"
                           />
                         </div>
@@ -196,15 +235,23 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                           <Label>Publication Type *</Label>
                           <Select
                             value={paper.publication_type}
-                            onValueChange={(value) => updatePaper(index, "publication_type", value)}
+                            onValueChange={(value) =>
+                              updatePaper(index, "publication_type", value)
+                            }
                           >
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Journal">Journal Article</SelectItem>
-                              <SelectItem value="Conference">Conference Paper</SelectItem>
-                              <SelectItem value="Book Chapter">Book Chapter</SelectItem>
+                              <SelectItem value="Journal">
+                                Journal Article
+                              </SelectItem>
+                              <SelectItem value="Conference">
+                                Conference Paper
+                              </SelectItem>
+                              <SelectItem value="Book Chapter">
+                                Book Chapter
+                              </SelectItem>
                               <SelectItem value="Other">Other</SelectItem>
                             </SelectContent>
                           </Select>
@@ -214,7 +261,9 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                           <Label>Journal/Conference Name *</Label>
                           <Input
                             value={paper.journal_name}
-                            onChange={(e) => updatePaper(index, "journal_name", e.target.value)}
+                            onChange={(e) =>
+                              updatePaper(index, "journal_name", e.target.value)
+                            }
                             placeholder="IEEE Transactions on..."
                           />
                         </div>
@@ -223,7 +272,9 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                           <Label>Year *</Label>
                           <Input
                             value={paper.year}
-                            onChange={(e) => updatePaper(index, "year", e.target.value)}
+                            onChange={(e) =>
+                              updatePaper(index, "year", e.target.value)
+                            }
                             placeholder="2024"
                             maxLength={4}
                           />
@@ -233,7 +284,9 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                           <Label>ISSN/ISBN</Label>
                           <Input
                             value={paper.issn || ""}
-                            onChange={(e) => updatePaper(index, "issn", e.target.value)}
+                            onChange={(e) =>
+                              updatePaper(index, "issn", e.target.value)
+                            }
                             placeholder="XXXX-XXXX"
                           />
                         </div>
@@ -242,7 +295,9 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                           <Label>Volume</Label>
                           <Input
                             value={paper.volume || ""}
-                            onChange={(e) => updatePaper(index, "volume", e.target.value)}
+                            onChange={(e) =>
+                              updatePaper(index, "volume", e.target.value)
+                            }
                             placeholder="Vol. 15"
                           />
                         </div>
@@ -251,7 +306,9 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                           <Label>Issue</Label>
                           <Input
                             value={paper.issue || ""}
-                            onChange={(e) => updatePaper(index, "issue", e.target.value)}
+                            onChange={(e) =>
+                              updatePaper(index, "issue", e.target.value)
+                            }
                             placeholder="Issue 3"
                           />
                         </div>
@@ -260,7 +317,9 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                           <Label>Page Numbers</Label>
                           <Input
                             value={paper.page_numbers || ""}
-                            onChange={(e) => updatePaper(index, "page_numbers", e.target.value)}
+                            onChange={(e) =>
+                              updatePaper(index, "page_numbers", e.target.value)
+                            }
                             placeholder="pp. 123-145"
                           />
                         </div>
@@ -271,7 +330,13 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                             type="number"
                             step="0.01"
                             value={paper.impact_factor || ""}
-                            onChange={(e) => updatePaper(index, "impact_factor", parseFloat(e.target.value))}
+                            onChange={(e) =>
+                              updatePaper(
+                                index,
+                                "impact_factor",
+                                parseFloat(e.target.value),
+                              )
+                            }
                             placeholder="3.5"
                           />
                         </div>
@@ -281,12 +346,18 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                           <div className="flex gap-2">
                             <Input
                               value={paper.doi || ""}
-                              onChange={(e) => updatePaper(index, "doi", e.target.value)}
+                              onChange={(e) =>
+                                updatePaper(index, "doi", e.target.value)
+                              }
                               placeholder="10.1000/xyz123"
                             />
                             {paper.doi && (
                               <Button variant="outline" size="icon" asChild>
-                                <a href={`https://doi.org/${paper.doi}`} target="_blank" rel="noopener">
+                                <a
+                                  href={`https://doi.org/${paper.doi}`}
+                                  target="_blank"
+                                  rel="noopener"
+                                >
                                   <ExternalLink className="h-4 w-4" />
                                 </a>
                               </Button>
@@ -299,7 +370,13 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                           <Input
                             type="number"
                             value={paper.citations || 0}
-                            onChange={(e) => updatePaper(index, "citations", parseInt(e.target.value))}
+                            onChange={(e) =>
+                              updatePaper(
+                                index,
+                                "citations",
+                                parseInt(e.target.value),
+                              )
+                            }
                             placeholder="0"
                           />
                         </div>
@@ -335,7 +412,13 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                             <input
                               type="checkbox"
                               checked={paper.is_first_author || false}
-                              onChange={(e) => updatePaper(index, "is_first_author", e.target.checked)}
+                              onChange={(e) =>
+                                updatePaper(
+                                  index,
+                                  "is_first_author",
+                                  e.target.checked,
+                                )
+                              }
                               className="rounded border-gray-300"
                             />
                             <span className="text-sm">First Author</span>
@@ -344,10 +427,18 @@ export function ResearchPapersForm({ data, onChange, onSave, loading }: Research
                             <input
                               type="checkbox"
                               checked={paper.is_corresponding_author || false}
-                              onChange={(e) => updatePaper(index, "is_corresponding_author", e.target.checked)}
+                              onChange={(e) =>
+                                updatePaper(
+                                  index,
+                                  "is_corresponding_author",
+                                  e.target.checked,
+                                )
+                              }
                               className="rounded border-gray-300"
                             />
-                            <span className="text-sm">Corresponding Author</span>
+                            <span className="text-sm">
+                              Corresponding Author
+                            </span>
                           </label>
                         </div>
                       </div>
@@ -380,7 +471,12 @@ interface ResearchProjectsFormProps {
   loading?: boolean;
 }
 
-export function ResearchProjectsForm({ data, onChange, onSave, loading }: ResearchProjectsFormProps) {
+export function ResearchProjectsForm({
+  data,
+  onChange,
+  onSave,
+  loading,
+}: ResearchProjectsFormProps) {
   const addProject = () => {
     const newProject: ResearchProject = {
       id: `proj-${Date.now()}`,
@@ -396,7 +492,11 @@ export function ResearchProjectsForm({ data, onChange, onSave, loading }: Resear
     onChange([...data, newProject]);
   };
 
-  const updateProject = (index: number, field: keyof ResearchProject, value: any) => {
+  const updateProject = (
+    index: number,
+    field: keyof ResearchProject,
+    value: any,
+  ) => {
     const updated = [...data];
     updated[index] = { ...updated[index], [field]: value };
     onChange(updated);
@@ -429,7 +529,9 @@ export function ResearchProjectsForm({ data, onChange, onSave, loading }: Resear
               <Briefcase className="h-5 w-5 text-blue-500" />
               Research Projects
             </CardTitle>
-            <CardDescription>Sponsored research and major/minor projects</CardDescription>
+            <CardDescription>
+              Sponsored research and major/minor projects
+            </CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={addProject}>
             <Plus className="h-4 w-4 mr-2" />
@@ -459,13 +561,15 @@ export function ResearchProjectsForm({ data, onChange, onSave, loading }: Resear
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">Project #{index + 1}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      project.status === "Completed" 
-                        ? "bg-green-100 text-green-700" 
-                        : project.status === "Ongoing"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-amber-100 text-amber-700"
-                    }`}>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        project.status === "Completed"
+                          ? "bg-green-100 text-green-700"
+                          : project.status === "Ongoing"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
                       {project.status}
                     </span>
                   </div>
@@ -484,7 +588,9 @@ export function ResearchProjectsForm({ data, onChange, onSave, loading }: Resear
                     <Label>Project Title *</Label>
                     <Textarea
                       value={project.title}
-                      onChange={(e) => updateProject(index, "title", e.target.value)}
+                      onChange={(e) =>
+                        updateProject(index, "title", e.target.value)
+                      }
                       placeholder="Full title of the research project"
                       rows={2}
                     />
@@ -494,7 +600,9 @@ export function ResearchProjectsForm({ data, onChange, onSave, loading }: Resear
                     <Label>Funding Agency *</Label>
                     <Select
                       value={project.funding_agency}
-                      onValueChange={(value) => updateProject(index, "funding_agency", value)}
+                      onValueChange={(value) =>
+                        updateProject(index, "funding_agency", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select agency" />
@@ -514,7 +622,13 @@ export function ResearchProjectsForm({ data, onChange, onSave, loading }: Resear
                     <Input
                       type="number"
                       value={project.amount || ""}
-                      onChange={(e) => updateProject(index, "amount", parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        updateProject(
+                          index,
+                          "amount",
+                          parseFloat(e.target.value),
+                        )
+                      }
                       placeholder="1000000"
                     />
                   </div>
@@ -523,14 +637,20 @@ export function ResearchProjectsForm({ data, onChange, onSave, loading }: Resear
                     <Label>Project Type</Label>
                     <Select
                       value={project.project_type}
-                      onValueChange={(value) => updateProject(index, "project_type", value as any)}
+                      onValueChange={(value) =>
+                        updateProject(index, "project_type", value as any)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Major">Major (Above 10 Lakhs)</SelectItem>
-                        <SelectItem value="Minor">Minor (Below 10 Lakhs)</SelectItem>
+                        <SelectItem value="Major">
+                          Major (Above 10 Lakhs)
+                        </SelectItem>
+                        <SelectItem value="Minor">
+                          Minor (Below 10 Lakhs)
+                        </SelectItem>
                         <SelectItem value="Consultancy">Consultancy</SelectItem>
                       </SelectContent>
                     </Select>
@@ -540,14 +660,20 @@ export function ResearchProjectsForm({ data, onChange, onSave, loading }: Resear
                     <Label>Your Role</Label>
                     <Select
                       value={project.role}
-                      onValueChange={(value) => updateProject(index, "role", value as any)}
+                      onValueChange={(value) =>
+                        updateProject(index, "role", value as any)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="PI">Principal Investigator (PI)</SelectItem>
-                        <SelectItem value="Co-PI">Co-Principal Investigator</SelectItem>
+                        <SelectItem value="PI">
+                          Principal Investigator (PI)
+                        </SelectItem>
+                        <SelectItem value="Co-PI">
+                          Co-Principal Investigator
+                        </SelectItem>
                         <SelectItem value="Consultant">Consultant</SelectItem>
                         <SelectItem value="Team Member">Team Member</SelectItem>
                       </SelectContent>
@@ -558,7 +684,9 @@ export function ResearchProjectsForm({ data, onChange, onSave, loading }: Resear
                     <Label>Status</Label>
                     <Select
                       value={project.status}
-                      onValueChange={(value) => updateProject(index, "status", value as any)}
+                      onValueChange={(value) =>
+                        updateProject(index, "status", value as any)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -575,7 +703,9 @@ export function ResearchProjectsForm({ data, onChange, onSave, loading }: Resear
                     <Label>Duration</Label>
                     <Input
                       value={project.duration}
-                      onChange={(e) => updateProject(index, "duration", e.target.value)}
+                      onChange={(e) =>
+                        updateProject(index, "duration", e.target.value)
+                      }
                       placeholder="2 years"
                     />
                   </div>
@@ -585,7 +715,9 @@ export function ResearchProjectsForm({ data, onChange, onSave, loading }: Resear
                     <Input
                       type="date"
                       value={project.start_date}
-                      onChange={(e) => updateProject(index, "start_date", e.target.value)}
+                      onChange={(e) =>
+                        updateProject(index, "start_date", e.target.value)
+                      }
                     />
                   </div>
 
@@ -594,7 +726,9 @@ export function ResearchProjectsForm({ data, onChange, onSave, loading }: Resear
                     <Input
                       type="date"
                       value={project.end_date || ""}
-                      onChange={(e) => updateProject(index, "end_date", e.target.value)}
+                      onChange={(e) =>
+                        updateProject(index, "end_date", e.target.value)
+                      }
                     />
                   </div>
 
@@ -602,7 +736,9 @@ export function ResearchProjectsForm({ data, onChange, onSave, loading }: Resear
                     <Label>Outcomes/Deliverables</Label>
                     <Textarea
                       value={project.outcomes || ""}
-                      onChange={(e) => updateProject(index, "outcomes", e.target.value)}
+                      onChange={(e) =>
+                        updateProject(index, "outcomes", e.target.value)
+                      }
                       placeholder="Key outcomes, publications, prototypes, etc."
                       rows={2}
                     />
@@ -634,7 +770,12 @@ interface ResearchGuidanceFormProps {
   loading?: boolean;
 }
 
-export function ResearchGuidanceForm({ data, onChange, onSave, loading }: ResearchGuidanceFormProps) {
+export function ResearchGuidanceForm({
+  data,
+  onChange,
+  onSave,
+  loading,
+}: ResearchGuidanceFormProps) {
   const addGuidance = () => {
     const newGuidance: ResearchGuidance = {
       id: `guide-${Date.now()}`,
@@ -649,7 +790,11 @@ export function ResearchGuidanceForm({ data, onChange, onSave, loading }: Resear
     onChange([...data, newGuidance]);
   };
 
-  const updateGuidance = (index: number, field: keyof ResearchGuidance, value: any) => {
+  const updateGuidance = (
+    index: number,
+    field: keyof ResearchGuidance,
+    value: any,
+  ) => {
     const updated = [...data];
     updated[index] = { ...updated[index], [field]: value };
     onChange(updated);
@@ -668,7 +813,9 @@ export function ResearchGuidanceForm({ data, onChange, onSave, loading }: Resear
               <Users className="h-5 w-5 text-purple-500" />
               Research Guidance
             </CardTitle>
-            <CardDescription>Ph.D., M.Phil., M.Tech students under supervision</CardDescription>
+            <CardDescription>
+              Ph.D., M.Phil., M.Tech students under supervision
+            </CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={addGuidance}>
             <Plus className="h-4 w-4 mr-2" />
@@ -697,14 +844,18 @@ export function ResearchGuidanceForm({ data, onChange, onSave, loading }: Resear
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{student.student_name || `Student #${index + 1}`}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      student.status === "Awarded"
-                        ? "bg-green-100 text-green-700"
-                        : student.status === "Completed"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-amber-100 text-amber-700"
-                    }`}>
+                    <span className="font-medium">
+                      {student.student_name || `Student #${index + 1}`}
+                    </span>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        student.status === "Awarded"
+                          ? "bg-green-100 text-green-700"
+                          : student.status === "Completed"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
                       {student.status}
                     </span>
                   </div>
@@ -723,7 +874,9 @@ export function ResearchGuidanceForm({ data, onChange, onSave, loading }: Resear
                     <Label>Student Name *</Label>
                     <Input
                       value={student.student_name}
-                      onChange={(e) => updateGuidance(index, "student_name", e.target.value)}
+                      onChange={(e) =>
+                        updateGuidance(index, "student_name", e.target.value)
+                      }
                       placeholder="Full name"
                     />
                   </div>
@@ -732,7 +885,13 @@ export function ResearchGuidanceForm({ data, onChange, onSave, loading }: Resear
                     <Label>Enrollment Number</Label>
                     <Input
                       value={student.enrollment_number || ""}
-                      onChange={(e) => updateGuidance(index, "enrollment_number", e.target.value)}
+                      onChange={(e) =>
+                        updateGuidance(
+                          index,
+                          "enrollment_number",
+                          e.target.value,
+                        )
+                      }
                       placeholder="PRN/Enrollment No."
                     />
                   </div>
@@ -741,7 +900,9 @@ export function ResearchGuidanceForm({ data, onChange, onSave, loading }: Resear
                     <Label>Degree</Label>
                     <Select
                       value={student.degree}
-                      onValueChange={(value) => updateGuidance(index, "degree", value as any)}
+                      onValueChange={(value) =>
+                        updateGuidance(index, "degree", value as any)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -760,7 +921,9 @@ export function ResearchGuidanceForm({ data, onChange, onSave, loading }: Resear
                     <Label>Thesis Title *</Label>
                     <Textarea
                       value={student.thesis_title}
-                      onChange={(e) => updateGuidance(index, "thesis_title", e.target.value)}
+                      onChange={(e) =>
+                        updateGuidance(index, "thesis_title", e.target.value)
+                      }
                       placeholder="Title of thesis/dissertation"
                       rows={2}
                     />
@@ -770,7 +933,9 @@ export function ResearchGuidanceForm({ data, onChange, onSave, loading }: Resear
                     <Label>University</Label>
                     <Input
                       value={student.university}
-                      onChange={(e) => updateGuidance(index, "university", e.target.value)}
+                      onChange={(e) =>
+                        updateGuidance(index, "university", e.target.value)
+                      }
                       placeholder="University of Mumbai"
                     />
                   </div>
@@ -779,14 +944,18 @@ export function ResearchGuidanceForm({ data, onChange, onSave, loading }: Resear
                     <Label>Your Role</Label>
                     <Select
                       value={student.role}
-                      onValueChange={(value) => updateGuidance(index, "role", value as any)}
+                      onValueChange={(value) =>
+                        updateGuidance(index, "role", value as any)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Supervisor">Supervisor</SelectItem>
-                        <SelectItem value="Co-Supervisor">Co-Supervisor</SelectItem>
+                        <SelectItem value="Co-Supervisor">
+                          Co-Supervisor
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -795,7 +964,9 @@ export function ResearchGuidanceForm({ data, onChange, onSave, loading }: Resear
                     <Label>Status</Label>
                     <Select
                       value={student.status}
-                      onValueChange={(value) => updateGuidance(index, "status", value as any)}
+                      onValueChange={(value) =>
+                        updateGuidance(index, "status", value as any)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -814,7 +985,13 @@ export function ResearchGuidanceForm({ data, onChange, onSave, loading }: Resear
                     <Input
                       type="date"
                       value={student.registration_date}
-                      onChange={(e) => updateGuidance(index, "registration_date", e.target.value)}
+                      onChange={(e) =>
+                        updateGuidance(
+                          index,
+                          "registration_date",
+                          e.target.value,
+                        )
+                      }
                     />
                   </div>
 
@@ -823,7 +1000,9 @@ export function ResearchGuidanceForm({ data, onChange, onSave, loading }: Resear
                     <Input
                       type="date"
                       value={student.award_date || ""}
-                      onChange={(e) => updateGuidance(index, "award_date", e.target.value)}
+                      onChange={(e) =>
+                        updateGuidance(index, "award_date", e.target.value)
+                      }
                     />
                   </div>
                 </div>
@@ -853,7 +1032,12 @@ interface PatentsFormProps {
   loading?: boolean;
 }
 
-export function PatentsForm({ data, onChange, onSave, loading }: PatentsFormProps) {
+export function PatentsForm({
+  data,
+  onChange,
+  onSave,
+  loading,
+}: PatentsFormProps) {
   const addPatent = () => {
     const newPatent: Patent = {
       id: `pat-${Date.now()}`,
@@ -885,7 +1069,9 @@ export function PatentsForm({ data, onChange, onSave, loading }: PatentsFormProp
               <Lightbulb className="h-5 w-5 text-green-500" />
               Patents
             </CardTitle>
-            <CardDescription>Patents filed, published, or granted</CardDescription>
+            <CardDescription>
+              Patents filed, published, or granted
+            </CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={addPatent}>
             <Plus className="h-4 w-4 mr-2" />
@@ -915,13 +1101,15 @@ export function PatentsForm({ data, onChange, onSave, loading }: PatentsFormProp
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">Patent #{index + 1}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      patent.status === "Granted"
-                        ? "bg-green-100 text-green-700"
-                        : patent.status === "Published"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-amber-100 text-amber-700"
-                    }`}>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        patent.status === "Granted"
+                          ? "bg-green-100 text-green-700"
+                          : patent.status === "Published"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
                       {patent.status}
                     </span>
                   </div>
@@ -940,7 +1128,9 @@ export function PatentsForm({ data, onChange, onSave, loading }: PatentsFormProp
                     <Label>Patent Title *</Label>
                     <Textarea
                       value={patent.title}
-                      onChange={(e) => updatePatent(index, "title", e.target.value)}
+                      onChange={(e) =>
+                        updatePatent(index, "title", e.target.value)
+                      }
                       placeholder="Title of the invention"
                       rows={2}
                     />
@@ -950,7 +1140,9 @@ export function PatentsForm({ data, onChange, onSave, loading }: PatentsFormProp
                     <Label>Patent Number</Label>
                     <Input
                       value={patent.patent_number || ""}
-                      onChange={(e) => updatePatent(index, "patent_number", e.target.value)}
+                      onChange={(e) =>
+                        updatePatent(index, "patent_number", e.target.value)
+                      }
                       placeholder="Application/Grant number"
                     />
                   </div>
@@ -959,7 +1151,9 @@ export function PatentsForm({ data, onChange, onSave, loading }: PatentsFormProp
                     <Label>Country *</Label>
                     <Select
                       value={patent.country}
-                      onValueChange={(value) => updatePatent(index, "country", value)}
+                      onValueChange={(value) =>
+                        updatePatent(index, "country", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -978,7 +1172,9 @@ export function PatentsForm({ data, onChange, onSave, loading }: PatentsFormProp
                     <Label>Status *</Label>
                     <Select
                       value={patent.status}
-                      onValueChange={(value) => updatePatent(index, "status", value as any)}
+                      onValueChange={(value) =>
+                        updatePatent(index, "status", value as any)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -997,7 +1193,9 @@ export function PatentsForm({ data, onChange, onSave, loading }: PatentsFormProp
                     <Input
                       type="date"
                       value={patent.filing_date}
-                      onChange={(e) => updatePatent(index, "filing_date", e.target.value)}
+                      onChange={(e) =>
+                        updatePatent(index, "filing_date", e.target.value)
+                      }
                     />
                   </div>
 
@@ -1006,7 +1204,9 @@ export function PatentsForm({ data, onChange, onSave, loading }: PatentsFormProp
                     <Input
                       type="date"
                       value={patent.grant_date || ""}
-                      onChange={(e) => updatePatent(index, "grant_date", e.target.value)}
+                      onChange={(e) =>
+                        updatePatent(index, "grant_date", e.target.value)
+                      }
                     />
                   </div>
 
@@ -1014,7 +1214,13 @@ export function PatentsForm({ data, onChange, onSave, loading }: PatentsFormProp
                     <Label>Inventors (comma separated)</Label>
                     <Input
                       value={patent.inventors.join(", ")}
-                      onChange={(e) => updatePatent(index, "inventors", e.target.value.split(",").map(i => i.trim()))}
+                      onChange={(e) =>
+                        updatePatent(
+                          index,
+                          "inventors",
+                          e.target.value.split(",").map((i) => i.trim()),
+                        )
+                      }
                       placeholder="Dr. John Doe, Dr. Jane Smith"
                     />
                   </div>
@@ -1045,7 +1251,12 @@ interface InvitedLecturesFormProps {
   loading?: boolean;
 }
 
-export function InvitedLecturesForm({ data, onChange, onSave, loading }: InvitedLecturesFormProps) {
+export function InvitedLecturesForm({
+  data,
+  onChange,
+  onSave,
+  loading,
+}: InvitedLecturesFormProps) {
   const addLecture = () => {
     const newLecture: InvitedLecture = {
       id: `lec-${Date.now()}`,
@@ -1060,7 +1271,11 @@ export function InvitedLecturesForm({ data, onChange, onSave, loading }: Invited
     onChange([...data, newLecture]);
   };
 
-  const updateLecture = (index: number, field: keyof InvitedLecture, value: any) => {
+  const updateLecture = (
+    index: number,
+    field: keyof InvitedLecture,
+    value: any,
+  ) => {
     const updated = [...data];
     updated[index] = { ...updated[index], [field]: value };
     onChange(updated);
@@ -1079,7 +1294,9 @@ export function InvitedLecturesForm({ data, onChange, onSave, loading }: Invited
               <Mic className="h-5 w-5 text-amber-500" />
               Invited Lectures & Conference Presentations
             </CardTitle>
-            <CardDescription>Keynotes, invited talks, panel discussions, guest lectures</CardDescription>
+            <CardDescription>
+              Keynotes, invited talks, panel discussions, guest lectures
+            </CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={addLecture}>
             <Plus className="h-4 w-4 mr-2" />
@@ -1109,13 +1326,15 @@ export function InvitedLecturesForm({ data, onChange, onSave, loading }: Invited
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">Lecture #{index + 1}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      lecture.level === "International"
-                        ? "bg-purple-100 text-purple-700"
-                        : lecture.level === "National"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-green-100 text-green-700"
-                    }`}>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        lecture.level === "International"
+                          ? "bg-purple-100 text-purple-700"
+                          : lecture.level === "National"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-green-100 text-green-700"
+                      }`}
+                    >
                       {lecture.level}
                     </span>
                   </div>
@@ -1134,7 +1353,9 @@ export function InvitedLecturesForm({ data, onChange, onSave, loading }: Invited
                     <Label>Lecture Title *</Label>
                     <Input
                       value={lecture.title}
-                      onChange={(e) => updateLecture(index, "title", e.target.value)}
+                      onChange={(e) =>
+                        updateLecture(index, "title", e.target.value)
+                      }
                       placeholder="Title of your talk/presentation"
                     />
                   </div>
@@ -1143,7 +1364,9 @@ export function InvitedLecturesForm({ data, onChange, onSave, loading }: Invited
                     <Label>Event Name *</Label>
                     <Input
                       value={lecture.event_name}
-                      onChange={(e) => updateLecture(index, "event_name", e.target.value)}
+                      onChange={(e) =>
+                        updateLecture(index, "event_name", e.target.value)
+                      }
                       placeholder="Conference/Workshop name"
                     />
                   </div>
@@ -1152,7 +1375,9 @@ export function InvitedLecturesForm({ data, onChange, onSave, loading }: Invited
                     <Label>Organizer</Label>
                     <Input
                       value={lecture.organizer}
-                      onChange={(e) => updateLecture(index, "organizer", e.target.value)}
+                      onChange={(e) =>
+                        updateLecture(index, "organizer", e.target.value)
+                      }
                       placeholder="Organizing institution"
                     />
                   </div>
@@ -1161,7 +1386,9 @@ export function InvitedLecturesForm({ data, onChange, onSave, loading }: Invited
                     <Label>Venue</Label>
                     <Input
                       value={lecture.venue}
-                      onChange={(e) => updateLecture(index, "venue", e.target.value)}
+                      onChange={(e) =>
+                        updateLecture(index, "venue", e.target.value)
+                      }
                       placeholder="Location"
                     />
                   </div>
@@ -1171,7 +1398,9 @@ export function InvitedLecturesForm({ data, onChange, onSave, loading }: Invited
                     <Input
                       type="date"
                       value={lecture.date}
-                      onChange={(e) => updateLecture(index, "date", e.target.value)}
+                      onChange={(e) =>
+                        updateLecture(index, "date", e.target.value)
+                      }
                     />
                   </div>
 
@@ -1179,17 +1408,25 @@ export function InvitedLecturesForm({ data, onChange, onSave, loading }: Invited
                     <Label>Type</Label>
                     <Select
                       value={lecture.type}
-                      onValueChange={(value) => updateLecture(index, "type", value as any)}
+                      onValueChange={(value) =>
+                        updateLecture(index, "type", value as any)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Keynote">Keynote Address</SelectItem>
-                        <SelectItem value="Invited Talk">Invited Talk</SelectItem>
-                        <SelectItem value="Resource Person">Resource Person</SelectItem>
+                        <SelectItem value="Invited Talk">
+                          Invited Talk
+                        </SelectItem>
+                        <SelectItem value="Resource Person">
+                          Resource Person
+                        </SelectItem>
                         <SelectItem value="Panelist">Panelist</SelectItem>
-                        <SelectItem value="Guest Lecture">Guest Lecture</SelectItem>
+                        <SelectItem value="Guest Lecture">
+                          Guest Lecture
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1198,13 +1435,17 @@ export function InvitedLecturesForm({ data, onChange, onSave, loading }: Invited
                     <Label>Level</Label>
                     <Select
                       value={lecture.level}
-                      onValueChange={(value) => updateLecture(index, "level", value as any)}
+                      onValueChange={(value) =>
+                        updateLecture(index, "level", value as any)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="International">International</SelectItem>
+                        <SelectItem value="International">
+                          International
+                        </SelectItem>
                         <SelectItem value="National">National</SelectItem>
                         <SelectItem value="State">State</SelectItem>
                         <SelectItem value="Regional">Regional</SelectItem>

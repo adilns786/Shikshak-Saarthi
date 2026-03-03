@@ -14,6 +14,9 @@ import { doc, getDoc } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AppShell } from "@/components/ui/app-shell";
+import { ExportReportButton } from "@/components/ui/pdf-export-dialog";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import Link from "next/link";
 import {
   FileText,
@@ -46,10 +49,14 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
-import { InteractiveTour, HelpButton, type TourStep } from "@/components/ui/interactive-tour";
-import { MobileNav } from "@/components/ui/mobile-nav";
+import {
+  InteractiveTour,
+  HelpButton,
+  type TourStep,
+} from "@/components/ui/interactive-tour";
 
 import GeneratePBASButton from "@/components/generatePbas";
+import { motion } from "framer-motion";
 
 import {
   ResponsiveContainer,
@@ -189,11 +196,11 @@ export default function DashboardPage() {
     const totalGrantAmount =
       researchProjects.reduce(
         (acc: number, p: any) => acc + parseAmount(p.amount),
-        0
+        0,
       ) +
       consultancyProjects.reduce(
         (acc: number, p: any) => acc + parseAmount(p.amount),
-        0
+        0,
       );
 
     return {
@@ -242,25 +249,31 @@ export default function DashboardPage() {
           return;
         }
         const liveProfile = userDoc.data();
-        
+
         // Redirect admin users directly to admin dashboard
         if (liveProfile.role === "misAdmin" || liveProfile.role === "admin") {
           router.replace("/admin/appraisals");
           return;
         }
-        
+
         // Redirect HOD to HOD dashboard
         if (liveProfile.role === "hod") {
           router.replace("/hod/dashboard");
           return;
         }
-        
+
         console.log("📊 Loaded profile from Firebase:", liveProfile);
         console.log("📝 Part B data:", liveProfile?.part_b);
-        console.log("📚 Publications:", liveProfile?.part_b?.table2?.publications);
-        console.log("🔬 Research Papers:", liveProfile?.part_b?.table2?.researchPapers);
+        console.log(
+          "📚 Publications:",
+          liveProfile?.part_b?.table2?.publications,
+        );
+        console.log(
+          "🔬 Research Papers:",
+          liveProfile?.part_b?.table2?.researchPapers,
+        );
         console.log("🏆 Patents:", liveProfile?.part_b?.patents_policy_awards);
-        
+
         setProfile(liveProfile || {});
         const liveMetrics = computeMetrics(liveProfile);
         console.log("📈 Computed metrics:", liveMetrics);
@@ -290,7 +303,7 @@ export default function DashboardPage() {
     }
     const { totals, topCategory, mostProductiveYear } = metrics as any;
     tmp.push(
-      `You have recorded ${totals.totalOutputs} academic outputs (papers, publications, patents, lectures, projects).`
+      `You have recorded ${totals.totalOutputs} academic outputs (papers, publications, patents, lectures, projects).`,
     );
     if (totals.totalOutputs > 0)
       tmp.push(`Top contribution area: ${topCategory}.`);
@@ -298,21 +311,21 @@ export default function DashboardPage() {
       tmp.push(`Guided students: ${totals.totalGuidance}.`);
     else
       tmp.push(
-        "No research guidance recorded — consider adding guided students."
+        "No research guidance recorded — consider adding guided students.",
       );
     if (mostProductiveYear)
       tmp.push(`Most productive year: ${mostProductiveYear}.`);
     if (totals.totalGrantAmount > 0)
       tmp.push(
-        `Total recorded funding: ₹ ${totals.totalGrantAmount.toFixed(2)}.`
+        `Total recorded funding: ₹ ${totals.totalGrantAmount.toFixed(2)}.`,
       );
     if (totals.totalPublications < 2)
       tmp.push(
-        "Consider publishing more peer-reviewed articles to strengthen your profile."
+        "Consider publishing more peer-reviewed articles to strengthen your profile.",
       );
     if (totals.totalCourses < 1)
       tmp.push(
-        "Attend/organize at least one FDP/course this year for teaching credentials."
+        "Attend/organize at least one FDP/course this year for teaching credentials.",
       );
 
     setInsights(tmp);
@@ -328,7 +341,7 @@ export default function DashboardPage() {
       if (!user || !profile?.email) return;
       const credential = EmailAuthProvider.credential(
         profile.email,
-        passwordForm.oldPassword
+        passwordForm.oldPassword,
       );
       await reauthenticateWithCredential(user, credential);
       await updatePassword(user, passwordForm.newPassword);
@@ -351,12 +364,54 @@ export default function DashboardPage() {
 
   if (loading || !profile) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-lg font-medium text-slate-700">
-            Loading Dashboard...
-          </p>
+      <div
+        className="page-shell flex items-center justify-center"
+        style={{ background: "var(--surface-base)" }}
+      >
+        <div className="w-full max-w-4xl px-6 space-y-6">
+          {/* Header skeleton */}
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl skeleton-shimmer" />
+            <div className="space-y-2">
+              <div className="w-44 h-5 rounded-lg skeleton-shimmer" />
+              <div className="w-28 h-3.5 rounded-lg skeleton-shimmer" />
+            </div>
+          </div>
+          {/* Stat cards skeleton */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                className="rounded-2xl p-5 space-y-3"
+                style={{
+                  background: "var(--surface-1)",
+                  border: "1px solid var(--border-subtle)",
+                }}
+              >
+                <div className="w-10 h-10 rounded-xl skeleton-shimmer" />
+                <div className="w-12 h-7 rounded-lg skeleton-shimmer" />
+                <div className="w-20 h-3.5 rounded-lg skeleton-shimmer" />
+              </div>
+            ))}
+          </div>
+          {/* Wide card skeleton */}
+          <div
+            className="rounded-2xl p-6 space-y-3"
+            style={{
+              background: "var(--surface-1)",
+              border: "1px solid var(--border-subtle)",
+            }}
+          >
+            <div className="w-36 h-5 rounded-lg skeleton-shimmer" />
+            <div className="grid grid-cols-3 gap-3">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-full h-12 rounded-xl skeleton-shimmer"
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -458,83 +513,82 @@ export default function DashboardPage() {
   console.log("📊 Current totals:", totals);
   console.log("📊 Current metrics:", metrics);
 
+  const appUser = {
+    email: profile?.email ?? "",
+    full_name:
+      profile?.personal_in?.name ?? profile?.name ?? profile?.full_name,
+    role: (profile?.role ?? "faculty") as any,
+    department: profile?.formHeader?.department_name ?? profile?.department,
+    profile_image_url: profile?.profile_image_url,
+  };
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    router.replace("/auth/login");
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-50 pb-20 md:pb-6">
-      <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
-        {/* Header */}
-        <header className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 border border-slate-200" data-tour="profile-header">
-          <div className="flex flex-col space-y-4">
-            <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-                Welcome back,{" "}
+    <AppShell user={appUser} onSignOut={handleSignOut}>
+      <motion.div
+        className="max-w-7xl mx-auto space-y-6"
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: [0, 0, 0.2, 1] }}
+      >
+        {/* Page Header */}
+        <header className="glass-card p-5 sm:p-6" data-tour="profile-header">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <h1
+                className="text-xl sm:text-2xl font-bold"
+                style={{ color: "var(--text-1)" }}
+              >
+                Welcome,{" "}
                 {profile?.personal_in?.name ?? profile?.name ?? "Faculty"}!
               </h1>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <p className="text-sm sm:text-base text-slate-600">
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <p className="text-sm" style={{ color: "var(--text-3)" }}>
                   {profile?.formHeader?.department_name ??
                     profile?.department ??
                     ""}
                 </p>
                 {profile?.formHeader?.academic_year && (
                   <>
-                    <span className="text-slate-400">•</span>
-                    <p className="text-sm sm:text-base text-slate-600">
+                    <span style={{ color: "var(--border-strong)" }}>•</span>
+                    <p className="text-sm" style={{ color: "var(--text-3)" }}>
                       {profile.formHeader.academic_year}
                     </p>
                   </>
                 )}
               </div>
               {profile?.formHeader?.cas_promotion_stage && (
-                <div className="mt-3 inline-block px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 text-xs sm:text-sm font-medium">
+                <div
+                  className="mt-2 inline-block px-3 py-1 rounded-full text-xs font-semibold"
+                  style={{
+                    background: "var(--brand-primary-subtle)",
+                    color: "var(--brand-primary)",
+                  }}
+                >
                   {profile.formHeader.cas_promotion_stage}
                 </div>
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <div data-tour="generate-pbas" className="w-full sm:w-auto">
+            <div className="flex flex-wrap items-center gap-2">
+              <div data-tour="generate-pbas">
                 <GeneratePBASButton userId={auth.currentUser?.uid ?? ""} />
               </div>
-              {(profile?.role === "misAdmin" || 
-                profile?.role === "admin") && (
-                <Link href="/admin/appraisals" className="w-full sm:w-auto">
-                  <Button variant="outline" className="w-full shadow-sm bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:border-purple-300">
-                    <BarChartIcon className="mr-2 h-4 w-4" /> Admin Dashboard
-                  </Button>
-                </Link>
-              )}
-              {profile?.role === "hod" && (
-                <Link href="/hod/dashboard" className="w-full sm:w-auto">
-                  <Button variant="outline" className="w-full shadow-sm bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300">
-                    <Building2 className="mr-2 h-4 w-4" /> HOD Dashboard
-                  </Button>
-                </Link>
-              )}
-              {(profile?.role === "misAdmin" || 
-                profile?.role === "admin" || 
-                profile?.role === "hod") && (
-                <Link href="/dashboard/stats" className="w-full sm:w-auto">
-                  <Button variant="outline" className="w-full shadow-sm bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200 hover:border-blue-300">
-                    <BarChartIcon className="mr-2 h-4 w-4" /> Faculty Stats
-                  </Button>
-                </Link>
-              )}
+              <ExportReportButton
+                targetUserId={auth.currentUser?.uid ?? undefined}
+                targetName={profile?.personal_in?.name ?? profile?.name}
+                label="Export Report"
+              />
               <Button
                 variant="outline"
                 onClick={() => setShowPasswordModal(true)}
-                className="w-full sm:w-auto shadow-sm"
+                size="sm"
               >
                 <Key className="mr-2 h-4 w-4" /> Change Password
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={async () => {
-                  await signOut(auth);
-                  router.replace("/auth/login");
-                }}
-                className="w-full sm:w-auto shadow-sm"
-              >
-                <LogOut className="mr-2 h-4 w-4" /> Logout
               </Button>
             </div>
           </div>
@@ -551,18 +605,26 @@ export default function DashboardPage() {
                     Welcome! Let's build your PBAS profile
                   </h3>
                   <p className="text-sm text-blue-700 mb-3">
-                    Your profile is empty. Start by filling out your academic information, 
-                    publications, and research work using the forms below. Data is automatically 
-                    saved to Firebase and will appear here in real-time.
+                    Your profile is empty. Start by filling out your academic
+                    information, publications, and research work using the forms
+                    below. Data is automatically saved to Firebase and will
+                    appear here in real-time.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <Link href="/dashboard/forms/part-a/personal-info">
-                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      <Button
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
                         Start with Personal Info
                       </Button>
                     </Link>
                     <Link href="/dashboard/forms/part-b/table2">
-                      <Button size="sm" variant="outline" className="border-blue-300">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-blue-300"
+                      >
                         Add Publications
                       </Button>
                     </Link>
@@ -757,7 +819,10 @@ export default function DashboardPage() {
         </div>
 
         {/* Insights */}
-        <Card className="border-slate-200 shadow-sm bg-gradient-to-br from-amber-50 to-white" data-tour="stats-overview">
+        <Card
+          className="border-slate-200 shadow-sm bg-gradient-to-br from-amber-50 to-white"
+          data-tour="stats-overview"
+        >
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900">
               <Lightbulb className="h-5 w-5 text-amber-500" />
@@ -808,7 +873,7 @@ export default function DashboardPage() {
             })}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Floating AI Button */}
       <Button
@@ -902,32 +967,33 @@ export default function DashboardPage() {
           {
             target: "[data-tour='profile-header']",
             title: "Welcome to Your Dashboard!",
-            content: "This is your personal dashboard where you can manage your PBAS forms and track your academic achievements.",
+            content:
+              "This is your personal dashboard where you can manage your PBAS forms and track your academic achievements.",
             placement: "bottom",
           },
           {
             target: "[data-tour='quick-actions']",
             title: "Quick Actions",
-            content: "Access all your important PBAS forms from here. Click any category to start filling your forms.",
+            content:
+              "Access all your important PBAS forms from here. Click any category to start filling your forms.",
             placement: "bottom",
           },
           {
             target: "[data-tour='stats-overview']",
             title: "Your Statistics",
-            content: "Track your research outputs, publications, and academic contributions at a glance.",
+            content:
+              "Track your research outputs, publications, and academic contributions at a glance.",
             placement: "top",
           },
           {
             target: "[data-tour='generate-pbas']",
             title: "Generate PBAS Report",
-            content: "When you're ready, click here to generate your complete PBAS report PDF.",
+            content:
+              "When you're ready, click here to generate your complete PBAS report PDF.",
             placement: "left",
           },
         ]}
       />
-      
-      {/* Mobile Bottom Navigation */}
-      <MobileNav />
-    </div>
+    </AppShell>
   );
 }

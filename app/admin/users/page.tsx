@@ -4,8 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth, db as firestore } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { AdminLayout } from "@/components/ui/admin-layout";
+import {
+  doc,
+  getDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
+import { AppShell } from "@/components/ui/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +69,11 @@ export default function AdminManageUsersPage() {
 
         const userData = userDoc.data();
 
-        if (userData.role !== "misAdmin" && userData.role !== "admin" && userData.role !== "hod") {
+        if (
+          userData.role !== "misAdmin" &&
+          userData.role !== "admin" &&
+          userData.role !== "hod"
+        ) {
           router.replace("/dashboard");
           return;
         }
@@ -85,7 +96,10 @@ export default function AdminManageUsersPage() {
 
       // If HOD, only show their department faculty
       if (currentUserData.role === "hod") {
-        q = query(usersRef, where("department", "==", currentUserData.department));
+        q = query(
+          usersRef,
+          where("department", "==", currentUserData.department),
+        );
       }
 
       const querySnapshot = await getDocs(q);
@@ -116,7 +130,7 @@ export default function AdminManageUsersPage() {
       filtered = filtered.filter(
         (user) =>
           user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+          user.email?.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -127,7 +141,9 @@ export default function AdminManageUsersPage() {
 
     // Apply department filter
     if (departmentFilter !== "all") {
-      filtered = filtered.filter((user) => user.department === departmentFilter);
+      filtered = filtered.filter(
+        (user) => user.department === departmentFilter,
+      );
     }
 
     setFilteredUsers(filtered);
@@ -152,24 +168,61 @@ export default function AdminManageUsersPage() {
     }
   };
 
-  const departments = [...new Set(users.map((u) => u.department).filter(Boolean))];
+  const departments = [
+    ...new Set(users.map((u) => u.department).filter(Boolean)),
+  ];
 
   if (loading) {
     return (
-      <AdminLayout user={currentUser}>
+      <AppShell
+        user={
+          currentUser
+            ? {
+                id: currentUser.id,
+                email: currentUser.email,
+                name: currentUser.name || currentUser.full_name,
+                full_name: currentUser.full_name,
+                role: currentUser.role as
+                  | "faculty"
+                  | "hod"
+                  | "admin"
+                  | "misAdmin",
+                department: currentUser.department,
+              }
+            : null
+        }
+      >
         <div className="flex items-center justify-center min-h-[60vh]">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="h-16 w-16 border-4 border-t-transparent border-blue-500 rounded-full"
+            className="h-16 w-16 border-4 border-t-transparent rounded-full"
+            style={{ borderColor: "var(--brand-primary)", borderTopColor: "transparent" }}
           />
         </div>
-      </AdminLayout>
+      </AppShell>
     );
   }
 
   return (
-    <AdminLayout user={currentUser}>
+    <AppShell
+      user={
+        currentUser
+          ? {
+              id: currentUser.id,
+              email: currentUser.email,
+              name: currentUser.name || currentUser.full_name,
+              full_name: currentUser.full_name,
+              role: currentUser.role as
+                | "faculty"
+                | "hod"
+                | "admin"
+                | "misAdmin",
+              department: currentUser.department,
+            }
+          : null
+      }
+    >
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <header className="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
@@ -222,7 +275,10 @@ export default function AdminManageUsersPage() {
                 </SelectContent>
               </Select>
 
-              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+              <Select
+                value={departmentFilter}
+                onValueChange={setDepartmentFilter}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Filter by department" />
                 </SelectTrigger>
@@ -272,7 +328,9 @@ export default function AdminManageUsersPage() {
                               {user.name || "Unnamed User"}
                             </h3>
                             <Badge className={getRoleBadgeColor(user.role)}>
-                              {user.role === "misAdmin" ? "MIS Admin" : user.role}
+                              {user.role === "misAdmin"
+                                ? "MIS Admin"
+                                : user.role}
                             </Badge>
                           </div>
                           <p className="text-sm text-slate-600">{user.email}</p>
@@ -380,7 +438,9 @@ export default function AdminManageUsersPage() {
               {/* Research Papers */}
               {selectedUser.part_b?.table2?.researchPapers?.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-lg mb-3">Research Papers</h3>
+                  <h3 className="font-semibold text-lg mb-3">
+                    Research Papers
+                  </h3>
                   <div className="space-y-2">
                     {selectedUser.part_b.table2.researchPapers.map(
                       (paper: any, idx: number) => (
@@ -398,7 +458,7 @@ export default function AdminManageUsersPage() {
                             </Badge>
                           )}
                         </div>
-                      )
+                      ),
                     )}
                   </div>
                 </div>
@@ -420,7 +480,7 @@ export default function AdminManageUsersPage() {
                             {pub.publisher} • {pub.year} • {pub.type}
                           </p>
                         </div>
-                      )
+                      ),
                     )}
                   </div>
                 </div>
@@ -429,7 +489,9 @@ export default function AdminManageUsersPage() {
               {/* Patents */}
               {selectedUser.part_b?.patents_policy_awards?.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-lg mb-3">Patents & Awards</h3>
+                  <h3 className="font-semibold text-lg mb-3">
+                    Patents & Awards
+                  </h3>
                   <div className="space-y-2">
                     {selectedUser.part_b.patents_policy_awards.map(
                       (patent: any, idx: number) => (
@@ -439,15 +501,18 @@ export default function AdminManageUsersPage() {
                         >
                           <div className="flex items-start justify-between">
                             <div>
-                              <p className="font-medium text-sm">{patent.title}</p>
+                              <p className="font-medium text-sm">
+                                {patent.title}
+                              </p>
                               <p className="text-xs text-slate-600 mt-1">
-                                {patent.category} • {patent.status} • {patent.year}
+                                {patent.category} • {patent.status} •{" "}
+                                {patent.year}
                               </p>
                             </div>
                             <Badge variant="secondary">{patent.category}</Badge>
                           </div>
                         </div>
-                      )
+                      ),
                     )}
                   </div>
                 </div>
@@ -456,7 +521,9 @@ export default function AdminManageUsersPage() {
               {/* Research Projects */}
               {selectedUser.part_b?.table2?.researchProjects?.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-lg mb-3">Research Projects</h3>
+                  <h3 className="font-semibold text-lg mb-3">
+                    Research Projects
+                  </h3>
                   <div className="space-y-2">
                     {selectedUser.part_b.table2.researchProjects.map(
                       (project: any, idx: number) => (
@@ -466,10 +533,11 @@ export default function AdminManageUsersPage() {
                         >
                           <p className="font-medium text-sm">{project.title}</p>
                           <p className="text-xs text-slate-600 mt-1">
-                            {project.funding_agency} • ₹{project.amount} • {project.role}
+                            {project.funding_agency} • ₹{project.amount} •{" "}
+                            {project.role}
                           </p>
                         </div>
-                      )
+                      ),
                     )}
                   </div>
                 </div>
@@ -478,6 +546,6 @@ export default function AdminManageUsersPage() {
           )}
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </AppShell>
   );
 }

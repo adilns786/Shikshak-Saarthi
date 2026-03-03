@@ -26,14 +26,14 @@ function generatePBASInsights(profileData: any): Insight[] {
   const totalPubs = researchPapers.length + publications.length;
 
   // Count indexed papers
-  const sciPapers = researchPapers.filter((p: any) => 
-    p.indexed_in?.some((i: string) => i.toLowerCase().includes('sci'))
+  const sciPapers = researchPapers.filter((p: any) =>
+    p.indexed_in?.some((i: string) => i.toLowerCase().includes("sci")),
   ).length;
-  const scopusPapers = researchPapers.filter((p: any) => 
-    p.indexed_in?.some((i: string) => i.toLowerCase().includes('scopus'))
+  const scopusPapers = researchPapers.filter((p: any) =>
+    p.indexed_in?.some((i: string) => i.toLowerCase().includes("scopus")),
   ).length;
-  const ugcPapers = researchPapers.filter((p: any) => 
-    p.indexed_in?.some((i: string) => i.toLowerCase().includes('ugc'))
+  const ugcPapers = researchPapers.filter((p: any) =>
+    p.indexed_in?.some((i: string) => i.toLowerCase().includes("ugc")),
   ).length;
 
   if (totalPubs === 0) {
@@ -67,7 +67,9 @@ function generatePBASInsights(profileData: any): Insight[] {
   }
 
   // First Author Analysis
-  const firstAuthorPapers = researchPapers.filter((p: any) => p.is_first_author).length;
+  const firstAuthorPapers = researchPapers.filter(
+    (p: any) => p.is_first_author,
+  ).length;
   if (researchPapers.length > 0 && firstAuthorPapers === 0) {
     insights.push({
       id: `auth-rec-${Date.now()}`,
@@ -81,7 +83,9 @@ function generatePBASInsights(profileData: any): Insight[] {
   }
 
   // Impact Factor Analysis
-  const highImpactPapers = researchPapers.filter((p: any) => (p.impact_factor || 0) > 2).length;
+  const highImpactPapers = researchPapers.filter(
+    (p: any) => (p.impact_factor || 0) > 2,
+  ).length;
   if (researchPapers.length > 3 && highImpactPapers === 0) {
     insights.push({
       id: `if-rec-${Date.now()}`,
@@ -95,7 +99,10 @@ function generatePBASInsights(profileData: any): Insight[] {
   }
 
   // Citation Analysis
-  const totalCitations = researchPapers.reduce((sum: number, p: any) => sum + (p.citations || 0), 0);
+  const totalCitations = researchPapers.reduce(
+    (sum: number, p: any) => sum + (p.citations || 0),
+    0,
+  );
   if (totalCitations > 50) {
     insights.push({
       id: `cite-ach-${Date.now()}`,
@@ -112,11 +119,17 @@ function generatePBASInsights(profileData: any): Insight[] {
   const consultancy = partB?.table2?.consultancyProjects || [];
   const totalProjects = projects.length + consultancy.length;
 
-  const majorProjects = projects.filter((p: any) => p.project_type === "Major").length;
-  const minorProjects = projects.filter((p: any) => p.project_type === "Minor").length;
+  const majorProjects = projects.filter(
+    (p: any) => p.project_type === "Major",
+  ).length;
+  const minorProjects = projects.filter(
+    (p: any) => p.project_type === "Minor",
+  ).length;
 
   const totalFunding = projects.reduce((acc: number, p: any) => {
-    return acc + (parseFloat(String(p.amount || 0).replace(/[^0-9.-]/g, "")) || 0);
+    return (
+      acc + (parseFloat(String(p.amount || 0).replace(/[^0-9.-]/g, "")) || 0)
+    );
   }, 0);
 
   if (totalProjects === 0) {
@@ -154,8 +167,12 @@ function generatePBASInsights(profileData: any): Insight[] {
 
   // Patents Analysis
   const patents = partB?.patents || [];
-  const grantedPatents = patents.filter((p: any) => p.status === "Granted").length;
-  const publishedPatents = patents.filter((p: any) => p.status === "Published").length;
+  const grantedPatents = patents.filter(
+    (p: any) => p.status === "Granted",
+  ).length;
+  const publishedPatents = patents.filter(
+    (p: any) => p.status === "Published",
+  ).length;
 
   if (patents.length > 0) {
     if (grantedPatents > 0) {
@@ -192,8 +209,12 @@ function generatePBASInsights(profileData: any): Insight[] {
   // Research Guidance Analysis
   const guidance = partB?.table2?.researchGuidance || [];
   const phdStudents = guidance.filter((g: any) => g.degree === "Ph.D.").length;
-  const awardedPhDs = guidance.filter((g: any) => g.degree === "Ph.D." && g.status === "Awarded").length;
-  const ongoingPhDs = guidance.filter((g: any) => g.degree === "Ph.D." && g.status === "Ongoing").length;
+  const awardedPhDs = guidance.filter(
+    (g: any) => g.degree === "Ph.D." && g.status === "Awarded",
+  ).length;
+  const ongoingPhDs = guidance.filter(
+    (g: any) => g.degree === "Ph.D." && g.status === "Ongoing",
+  ).length;
 
   if (phdStudents > 0) {
     insights.push({
@@ -256,8 +277,12 @@ function generatePBASInsights(profileData: any): Insight[] {
 
   // Invited Lectures Analysis
   const lectures = partB?.invited_lectures || [];
-  const intlLectures = lectures.filter((l: any) => l.level === "International").length;
-  const nationalLectures = lectures.filter((l: any) => l.level === "National").length;
+  const intlLectures = lectures.filter(
+    (l: any) => l.level === "International",
+  ).length;
+  const nationalLectures = lectures.filter(
+    (l: any) => l.level === "National",
+  ).length;
   const keynotes = lectures.filter((l: any) => l.type === "Keynote").length;
 
   if (lectures.length > 0) {
@@ -283,7 +308,9 @@ function generatePBASInsights(profileData: any): Insight[] {
 
   // Awards Analysis
   const awards = partB?.awards || [];
-  const nationalAwards = awards.filter((a: any) => a.category === "National" || a.category === "International").length;
+  const nationalAwards = awards.filter(
+    (a: any) => a.category === "National" || a.category === "International",
+  ).length;
 
   if (awards.length > 0) {
     insights.push({
@@ -348,7 +375,8 @@ function calculateEstimatedAPIScore(partA: any, partB: any): number {
   const papers = partB?.table2?.researchPapers || [];
   papers.forEach((p: any) => {
     let paperScore = 10;
-    if (p.indexed_in?.includes("SCI") || p.indexed_in?.includes("SCIE")) paperScore = 15;
+    if (p.indexed_in?.includes("SCI") || p.indexed_in?.includes("SCIE"))
+      paperScore = 15;
     else if (p.indexed_in?.includes("Scopus")) paperScore = 12;
     if (p.is_first_author) paperScore += 2;
     score += paperScore;
@@ -402,7 +430,9 @@ function generateSummary(profileData: any): string {
 
   const papers = partB?.table2?.researchPapers?.length || 0;
   const pubs = partB?.table2?.publications?.length || 0;
-  const projects = (partB?.table2?.researchProjects?.length || 0) + (partB?.table2?.consultancyProjects?.length || 0);
+  const projects =
+    (partB?.table2?.researchProjects?.length || 0) +
+    (partB?.table2?.consultancyProjects?.length || 0);
   const patents = partB?.patents?.length || 0;
   const guidance = partB?.table2?.researchGuidance?.length || 0;
   const lectures = partB?.invited_lectures?.length || 0;
@@ -411,9 +441,11 @@ function generateSummary(profileData: any): string {
   const estimatedScore = calculateEstimatedAPIScore(partA, partB);
 
   return `Your academic profile includes ${papers + pubs} publication(s), ${projects} research project(s), ${patents} patent(s), ${guidance} research student(s) under supervision, ${lectures} invited lecture(s), and ${courses} professional development course(s). Your estimated Category III API score is approximately ${estimatedScore} points. ${
-    estimatedScore >= 300 ? "Your research profile is strong for higher academic positions." : 
-    estimatedScore >= 150 ? "Your profile is developing well. Continue adding quality research outputs." :
-    "Focus on building your research portfolio for career advancement."
+    estimatedScore >= 300
+      ? "Your research profile is strong for higher academic positions."
+      : estimatedScore >= 150
+        ? "Your profile is developing well. Continue adding quality research outputs."
+        : "Focus on building your research portfolio for career advancement."
   }`;
 }
 
@@ -429,22 +461,36 @@ function generateRecommendations(profileData: any): string[] {
   const courses = partA?.courses_fdp || [];
 
   if (papers.length < 5) {
-    recommendations.push("Publish 2-3 papers per year in SCI/Scopus/UGC Care indexed journals.");
+    recommendations.push(
+      "Publish 2-3 papers per year in SCI/Scopus/UGC Care indexed journals.",
+    );
   }
   if (projects.length === 0) {
-    recommendations.push("Apply for funded research projects from DST, AICTE, UGC, or industry.");
+    recommendations.push(
+      "Apply for funded research projects from DST, AICTE, UGC, or industry.",
+    );
   }
   if (patents.length === 0) {
-    recommendations.push("Consider filing patents for your innovative research work.");
+    recommendations.push(
+      "Consider filing patents for your innovative research work.",
+    );
   }
   if (courses.length < 2) {
-    recommendations.push("Attend at least one FDP/STTP per year for continuous learning.");
+    recommendations.push(
+      "Attend at least one FDP/STTP per year for continuous learning.",
+    );
   }
-  
-  recommendations.push("Collaborate on interdisciplinary research for broader impact.");
+
+  recommendations.push(
+    "Collaborate on interdisciplinary research for broader impact.",
+  );
   recommendations.push("Present at national and international conferences.");
-  recommendations.push("Consider writing textbooks or contributing book chapters.");
-  recommendations.push("Apply for national/state awards in your area of expertise.");
+  recommendations.push(
+    "Consider writing textbooks or contributing book chapters.",
+  );
+  recommendations.push(
+    "Apply for national/state awards in your area of expertise.",
+  );
 
   return recommendations;
 }
@@ -463,27 +509,57 @@ export async function POST(request: NextRequest) {
     const comparisonData = [
       {
         metric: "Publications",
-        user_value: (partB?.table2?.researchPapers?.length || 0) + (partB?.table2?.publications?.length || 0),
+        user_value:
+          (partB?.table2?.researchPapers?.length || 0) +
+          (partB?.table2?.publications?.length || 0),
         department_avg: 5,
-        percentile: Math.min(100, Math.round((((partB?.table2?.researchPapers?.length || 0) + (partB?.table2?.publications?.length || 0)) / 7) * 100)),
+        percentile: Math.min(
+          100,
+          Math.round(
+            (((partB?.table2?.researchPapers?.length || 0) +
+              (partB?.table2?.publications?.length || 0)) /
+              7) *
+              100,
+          ),
+        ),
       },
       {
         metric: "Projects",
-        user_value: (partB?.table2?.researchProjects?.length || 0),
+        user_value: partB?.table2?.researchProjects?.length || 0,
         department_avg: 2,
-        percentile: Math.min(100, Math.round(((partB?.table2?.researchProjects?.length || 0) / 3) * 100)),
+        percentile: Math.min(
+          100,
+          Math.round(
+            ((partB?.table2?.researchProjects?.length || 0) / 3) * 100,
+          ),
+        ),
       },
       {
         metric: "Patents",
         user_value: partB?.patents?.length || 0,
         department_avg: 1,
-        percentile: Math.min(100, Math.round(((partB?.patents?.length || 0) / 2) * 100)),
+        percentile: Math.min(
+          100,
+          Math.round(((partB?.patents?.length || 0) / 2) * 100),
+        ),
       },
       {
         metric: "PhD Guidance",
-        user_value: partB?.table2?.researchGuidance?.filter((g: any) => g.degree === "Ph.D.").length || 0,
+        user_value:
+          partB?.table2?.researchGuidance?.filter(
+            (g: any) => g.degree === "Ph.D.",
+          ).length || 0,
         department_avg: 1,
-        percentile: Math.min(100, Math.round(((partB?.table2?.researchGuidance?.filter((g: any) => g.degree === "Ph.D.").length || 0) / 2) * 100)),
+        percentile: Math.min(
+          100,
+          Math.round(
+            ((partB?.table2?.researchGuidance?.filter(
+              (g: any) => g.degree === "Ph.D.",
+            ).length || 0) /
+              2) *
+              100,
+          ),
+        ),
       },
     ];
 
@@ -505,7 +581,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: error.message || "Failed to generate PBAS analysis",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -518,7 +594,8 @@ export async function GET() {
       method: "POST",
       body: {
         profileData: "Faculty profile data object containing part_a and part_b",
-        analysisType: "Optional: summary | recommendations | comparison | forecast",
+        analysisType:
+          "Optional: summary | recommendations | comparison | forecast",
       },
     },
     features: [

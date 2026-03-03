@@ -1,9 +1,12 @@
-import { HeroSection } from "@/components/ui/hero-section"
+import { Suspense } from "react";
+import { HeroSection } from "@/components/ui/hero-section";
 
 export default function HomePage() {
   return (
     <main className="min-h-screen">
-      <HeroSection />
+      <Suspense fallback={null}>
+        <HeroSection />
+      </Suspense>
     </main>
-  )
+  );
 }

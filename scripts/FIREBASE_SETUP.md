@@ -8,6 +8,7 @@ To run the dev users seed script, you need to:
    - Save the file as `firebaseServiceAccount.json` in the project root
 
 2. **Run the seed script:**
+
    ```bash
    node scripts/seed-dev-users.js
    ```

@@ -2,19 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth, db as firestore } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { AdminLayout } from "@/components/ui/admin-layout";
+import { auth, db as firestore } from "@/lib/firebase";
+import { AppShell } from "@/components/ui/app-shell";
+import { ExportReportButton } from "@/components/ui/pdf-export-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Users, FileText, CheckCircle, Clock, BarChart3 } from "lucide-react";
-import { motion } from "framer-motion";
 
 export default function AdminAppraisalsPage() {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [userData, setUserData] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -32,13 +33,13 @@ export default function AdminAppraisalsPage() {
         }
 
         const userData = userDoc.data();
-        
+
         // HOD should go to their own dashboard
         if (userData.role === "hod") {
           router.replace("/hod/dashboard");
           return;
         }
-        
+
         // Only admins can access this page
         if (userData.role !== "misAdmin" && userData.role !== "admin") {
           router.replace("/dashboard");
@@ -46,6 +47,7 @@ export default function AdminAppraisalsPage() {
         }
 
         setUserRole(userData.role);
+        setUserData(userData);
         setLoading(false);
       } catch (err) {
         console.error("Error:", err);
@@ -58,22 +60,43 @@ export default function AdminAppraisalsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-50">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="h-16 w-16 border-4 border-t-transparent border-blue-500 rounded-full"
-        />
+      <div className="page-shell flex items-center justify-center">
+        <div className="w-12 h-12 rounded-full border-2 border-[var(--brand-primary)] border-t-transparent animate-spin" />
       </div>
     );
   }
 
+  const appUser = {
+    email: userData?.email ?? "",
+    full_name: userData?.name ?? userData?.full_name ?? "Admin",
+    role: (userRole ?? "admin") as any,
+    department: userData?.department,
+  };
+
   return (
-    <AdminLayout>
-      <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
-        <header className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 border border-slate-200">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Admin Dashboard</h1>
-          <p className="text-sm sm:text-base text-slate-600 mt-1">Manage faculty appraisals and system settings</p>
+    <AppShell
+      user={appUser}
+      onSignOut={async () => {
+        const { signOut } = await import("firebase/auth");
+        const { auth } = await import("@/lib/firebase");
+        await signOut(auth);
+        router.replace("/auth/login");
+      }}
+    >
+      <div className="max-w-7xl mx-auto space-y-6">
+        <header className="glass-card p-5 sm:p-6 flex items-center justify-between">
+          <div>
+            <h1
+              className="text-xl sm:text-2xl font-bold"
+              style={{ color: "var(--text-1)" }}
+            >
+              Admin Dashboard
+            </h1>
+            <p className="text-sm mt-0.5" style={{ color: "var(--text-3)" }}>
+              Manage faculty appraisals and system settings
+            </p>
+          </div>
+          <ExportReportButton label="Export All" />
         </header>
 
         {/* Quick Stats */}
@@ -166,7 +189,9 @@ export default function AdminAppraisalsPage() {
                 View comprehensive analytics and performance metrics
               </p>
               <Link href="/dashboard/stats">
-                <Button className="w-full" variant="outline">View Statistics</Button>
+                <Button className="w-full" variant="outline">
+                  View Statistics
+                </Button>
               </Link>
             </CardContent>
           </Card>
@@ -189,6 +214,6 @@ export default function AdminAppraisalsPage() {
           </Card>
         </div>
       </div>
-    </AdminLayout>
+    </AppShell>
   );
 }
