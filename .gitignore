@@ -30,6 +30,8 @@ next-env.d.ts
 /.firebase
 /firebaseConfig.js
 firebaseConfig.json
+_server/firebaseConfig.json
+_server/.env
 *_serviceAccount*.json
 serviceAccount*.json
 credentials.json
@@ -37,3 +39,7 @@ credentials.json
 *.key
 *.p12
 *.jks
+.aws/
+.gcp/
+*.secret
+*.private
